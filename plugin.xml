@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.wst.server.core.runtimeTypes">
+     <runtimeType
+       id="org.eclipsewtp.server.wirecloud.runtime.10"
+       class="com.conwet.wirecloud.ApplicationMashupServerRuntime"
+       description="Wirecloud"
+       name="Wirecloud"
+       vendor="CoNWeTLab"
+       vendorId="conwet"
+       version="1.0">
+     <moduleType types="com.conwet.applicationmashup.mac" versions="1.0"/>
+    </runtimeType>
+  </extension>
+
+<!-- org.eclipse.jst.server.generic.core.internal.ExternalServerBehaviour-->
+   <extension
+         point="org.eclipse.wst.server.core.serverTypes">
+    <serverType
+     id="org.eclipsewtp.server.wirecloud.server"
+     runtime="true"
+     runtimeTypeId="org.eclipsewtp.server.wirecloud.runtime.10"
+     name="Wirecloud"
+     description="Wirecloud"
+     class="com.conwet.wirecloud.WirecloudServer"
+     behaviourClass="com.conwet.wirecloud.WirecloudServerBehaviour"
+     
+     hasConfiguration="false"
+     initialState="stopped"
+     launchConfigId="org.eclipse.jst.server.generic.core
+                                      .ExternalLaunchConfigurationType"
+     launchModes="run,debug"
+     startBeforePublish="true"
+     startTimeout="120000"
+     stopTimeout="15000"
+     supportsRemoteHosts="true"/>
+  </extension>
+ 
+<!--org.eclipse.wst.server.core.model.ModuleFactoryDelegate-->
+	<extension
+		point="org.eclipse.wst.server.core.moduleFactories">
+		<moduleFactory
+		class="com.conwet.wirecloud.WirecloudModuleFactory"
+		id="com.conwet.wirecloud.my.ModuleFactory"
+		projects="true">
+		<moduleType
+			types="com.conwet.applicationmashup.mac"
+			versions="1.0">
+		</moduleType>
+		</moduleFactory>
+	</extension>
+
+	<extension point="org.eclipse.wst.server.core.moduleTypes">
+		<moduleType
+			id="com.conwet.applicationmashup.mac" 
+			name="Mashable Application Component"/>
+	</extension>
+
+	<extension 
+	  point="org.eclipse.wst.common.project.facet.core.runtimes">
+	  <!--<runtime-component-type id="org.eclipsewtp.server.wirecloud"/>-->
+	  <runtime-component-type id="org.eclipsewtp.server.wirecloud.runtime"/>
+	  <runtime-component-version type="org.eclipsewtp.server.wirecloud.runtime" version="1.0"/>
+	  
+	  <!-- <adapter>
+	    <runtime-component id="org.eclipsewtp.server.wirecloud" />
+	    <factory 
+	    class="org.eclipse.jst.server.core.internal.RuntimeClasspathProvider$Factory"/>
+	    <type
+	       class="org.eclipse.jst.common.project.facet.core.IClasspathProvider"/>
+	    </adapter>
+	    <adapter>
+	      <runtime-component id="org.eclipsewtp.server.wirecloud"/>
+	      <factory 
+	      class="org.eclipse.jst.server.ui.internal.RuntimeLabelProvider$Factory"/>
+	    <type
+	       class="org.eclipse.wst.common.project.facet.ui.IRuntimeComponentLabelProvider"/>
+	   </adapter>-->
+	  
+	  
+	  <supported>
+	    <runtime-component id="org.eclipsewtp.server.wirecloud.runtime" version="1.0"/>
+	    <facet id="com.conwet.applicationmashup.mac" version="1.0"/>
+	  </supported>
+	   
+	
+	</extension>
+
+<extension point="org.eclipse.jst.server.core.runtimeFacetMappings">
+  <runtimeFacetMapping
+     runtimeTypeId="org.eclipsewtp.server.wirecloud.runtime.10"
+     runtime-component="org.eclipsewtp.server.wirecloud.runtime"
+     version="1.0"/>
+</extension>
+
+<extension point="org.eclipse.wst.common.project.facet.core.facets">
+	  <project-facet id="com.conwet.applicationmashup.mac">
+	    <label>Mashable Application Component</label>
+	    <description>Enables the project to be deployed as a Mashable Application Component.</description>
+	  </project-facet>
+	  <project-facet-version facet="com.conwet.applicationmashup.mac" version="1.0">
+
+		<action type="INSTALL">
+      		<delegate class="com.conwet.wirecloud.MACFacetInstallDelegate"/>
+    	 </action>
+	  	 <action type="UNINSTALL">
+      		<delegate class="com.conwet.wirecloud.MACFacetUninstallDelegate"/>
+    	 </action>
+	  </project-facet-version>
+
+	</extension>
+
+<!--<extension
+   point="org.eclipse.jst.server.generic.core.serverdefinition">
+  <serverdefinition
+     id="org.eclipsewtp.server.wirecloud.runtime.10"
+     definitionfile="./wirecloud.serverdef"/>
+</extension>-->
+
+<extension
+   point="org.eclipse.wst.server.ui.wizardFragments">
+  <fragment
+     id="org.eclipse.jst.server.generic.runtime"
+     typeIds="org.eclipsewtp.server.wirecloud.runtime.10"
+     class="org.eclipse.jst.server.generic.ui.internal
+                                 .GenericServerRuntimeWizardFragment"/>
+  <fragment
+     id="org.eclipse.jst.server.generic.server"
+     typeIds="org.eclipsewtp.server.wirecloud.server"
+     class="org.eclipse.jst.server.generic.ui.internal
+                                        .GenericServerWizardFragment"/>
+</extension>
+<extension
+   point="org.eclipse.wst.server.ui.serverImages">
+  <image
+     id="org.eclipse.jst.server.generic.image"
+     icon="icons/wc1.png"
+     typeIds="org.eclipsewtp.server.wirecloud.runtime.10"/>
+  <image
+     id="org.eclipse.jst.server.generic.image"
+     icon="icons/wc1.png"
+     typeIds="org.eclipsewtp.server.wirecloud.server"/>
+</extension>
+
+<extension
+   point="org.eclipse.wst.common.project.facet.ui.images">
+  <image
+     runtime-component-type="org.eclipsewtp.server.wirecloud"
+     path="icons/wc1.png"/>
+</extension>
+
+<!--<extension
+   point="org.eclipse.jst.server.core.runtimeClasspathProviders">
+  <runtimeClasspathProvider
+     class="org.eclipse.jst.server.generic.core.internal
+                                  .GenericServerRuntimeTargetHandler"
+     id="org.eclipsewtp.jst.server.generic.wirecloud
+                                          .runtimeClasspathProvider"
+     runtimeTypeIds="org.eclipsewtp.server.wirecloud.*"/>
+</extension>-->
+
+</plugin>

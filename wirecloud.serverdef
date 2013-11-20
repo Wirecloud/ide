@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:ServerRuntime
+   xmlns:tns=
+"http://eclipse.org/jst/server/generic/ServerTypeDefinition"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation=
+"http://eclipse.org/jst/server/generic/ServerTypeDefinition
+ServerTypeDefinitionSchema.xsd"
+  name="Wirecloud" version="v1.0">
+  
+ <property id="serverRootDirectory"
+    label="Runtime Directory"
+    type="directory"
+    context="runtime"
+    default="/home/wei/wirecloud_instance"/>
+
+ <property id="autoDeployDirectory"
+    label="Auto Deploy Directory"
+    type="directory"
+    context="server"
+    default="/home/wei/wirecloud_instance"/>
+
+ <property id="port"
+    label="Server Port"
+    type="string"
+    context="server"
+    default="8080"/>
+ <property id="debugPort"
+    label="Debug Port"
+    type="string"
+    context="server"
+    default="9009"/>
+ <port>
+   <no>${port}</no>
+   <name>Http</name>
+   <protocol>http</protocol>
+   start
+ </port>
+ 
+  <module>
+   <type>com.conwet.applicationmashup.mac</type>
+   <publishDir>${autoDeployDirectory}</publishDir>
+   <publisherReference>
+     org.eclipse.jst.server.generic.antpublisher
+   </publisherReference>
+ </module>
+ 
+ <module>
+   <type>jst.web</type>
+   <publishDir>${autoDeployDirectory}</publishDir>
+   <publisherReference>
+     org.eclipse.jst.server.generic.antpublisher
+   </publisherReference>
+ </module>
+
+<project>
+  <classpathReference></classpathReference>
+</project>
+<start>
+  <external>
+    "python manage.py runserver --insecure"
+  </external>
+  <workingDirectory>${serverRootDirectory}</workingDirectory>
+  <debugPort>${debugPort}</debugPort>
+</start>
+<stop>
+  <external>kill all</external>
+  <workingDirectory>${serverRootDirectory}</workingDirectory>
+</stop>
+
+<publisher id="org.eclipse.jst.server.generic.antpublisher">
+  <publisherdata>
+    <dataname>build.file</dataname>
+    <datavalue>sjsas.xml</datavalue>
+  </publisherdata>
+  <publisherdata>
+    <dataname>target.publish.jst.web</dataname>
+    <datavalue>deploy.j2ee.web</datavalue>
+  </publisherdata>
+</publisher>
+
+<classpath id="sjsas">
+  <archive path="${serverRootDirectory}/widget.jar"/>
+</classpath>
+<jndiConnection>
+  <providerUrl>http://localhost:${port}</providerUrl>
+    <initialContextFactory>not.used</initialContextFactory>
+    <jndiProperty>
+      <name></name>
+      <value></value>
+    </jndiProperty>
+  </jndiConnection>
+</tns:ServerRuntime>
