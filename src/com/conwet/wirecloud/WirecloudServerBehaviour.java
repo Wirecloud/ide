@@ -16,6 +16,14 @@ import org.eclipse.wst.server.core.model.ServerBehaviourDelegate;
 
 public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 
+    protected transient ServerMonitoringThread ping;
+
+    public WirecloudServerBehaviour() {
+		super();
+		
+		ping = new ServerMonitoringThread("http://localhost:8000/api/features", this);
+	}
+
 	@Override
 	protected void publishStart(IProgressMonitor monitor) throws CoreException {
 		// TODO Auto-generated method stub
@@ -151,9 +159,20 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 
 	@Override
 	public void stop(boolean arg0) {
-		// TODO Auto-generated method stub
 		this.setServerState(IServer.STATE_STOPPING);
-		this.setServerState(IServer.STATE_STOPPED);
 	}
 
+	public void setServerRunning() {
+		int state = getServer().getServerState();
+		if (state != IServer.STATE_STOPPING) {
+			this.setServerState(IServer.STATE_STARTED);
+		}
+	}
+
+	public void setServerStopped() {
+		int state = getServer().getServerState();
+		if (state != IServer.STATE_STARTING) {
+			this.setServerState(IServer.STATE_STOPPED);
+		}
+	}
 }
