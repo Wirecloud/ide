@@ -25,9 +25,9 @@ public class AuthenticationWizardPage extends WizardFragment {
 	private String token;
 	private Browser browser;
 
-	public AuthenticationWizardPage() {
-		
-	
+	@Override
+	public boolean hasComposite() {
+		return true;
 	}
 
 	public String getToken() {
@@ -40,13 +40,22 @@ public class AuthenticationWizardPage extends WizardFragment {
 		handle.setDescription("Authenticate in Wirecloud");
 		container = new Composite(parent, SWT.NULL);
 		container.setLayout(new FillLayout());
-
+		
+		
 		try {
 			browser = new Browser(container, SWT.NONE);
 		} catch (SWTError e) {
 			System.err.println("Error en la creación de browser!");
 		}
 
+		final WirecloudAPI API = getWirecloudAPIFromWizardInstance();
+		
+		try {
+			browser.setUrl(API.getAuthURL("WirecloudIDE"));
+		} catch (OAuthSystemException e1) {
+			e1.printStackTrace();
+		}
+		
 		final AuthenticationWizardPage page = this;
 		LocationListener locationListener = new LocationListener() {
 			public void changed(LocationEvent event) {
@@ -59,7 +68,7 @@ public class AuthenticationWizardPage extends WizardFragment {
 					return;
 				}
 
-				WirecloudAPI API = getWirecloudAPIFromWizardInstance();
+				
 				if (browser.getUrl().startsWith(API.UNIVERSAL_REDIRECT_URI)) {
 					QueryParameters parameters = new QueryParameters(
 							currentURL.getQuery());
@@ -74,24 +83,25 @@ public class AuthenticationWizardPage extends WizardFragment {
 		};
 		browser.addLocationListener(locationListener);
 
-		setComplete(false);
+		
+		setComplete(true);
 		return container;
 	}
 
 //	@Override
-//	public void setVisible(boolean visible) {
-//
-//		if (visible) {
-//			WirecloudAPI wirecloudAPI = getWirecloudAPIFromWizardInstance();
-//			try {
-//				browser.setUrl(wirecloudAPI.getAuthURL("WirecloudIDE"));
-//			} catch (OAuthSystemException e) {
-//				e.printStackTrace();
+//		public void setVisible(boolean visible) {
+//	
+//			if (visible) {
+//				WirecloudAPI wirecloudAPI = getWirecloudAPIFromWizardInstance();
+//				try {
+//					browser.setUrl(wirecloudAPI.getAuthURL("WirecloudIDE"));
+//				} catch (OAuthSystemException e) {
+//					e.printStackTrace();
+//				}
 //			}
+//			
+//			super.setVisible(visible);
 //		}
-//
-//		super.setVisible(visible);
-//	}
 
 	private WirecloudAPI getWirecloudAPIFromWizardInstance(){
 		return (WirecloudAPI) getTaskModel().getObject("WirecloudAPI");
