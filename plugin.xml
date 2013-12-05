@@ -130,7 +130,7 @@
   <fragment
      id="org.eclipse.jst.server.generic.server"
      typeIds="org.eclipsewtp.server.wirecloud.server"
-     class="com.conwet.wirecloud.wizards.WirecloudServerCreationWizard"/>
+     class="com.conwet.wirecloud.wizards.deployment.WirecloudServerCreationWizard"/>
 </extension>
 <extension
    point="org.eclipse.wst.server.ui.serverImages">

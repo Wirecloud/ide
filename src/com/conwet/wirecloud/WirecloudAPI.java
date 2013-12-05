@@ -226,4 +226,8 @@ public class WirecloudAPI {
 		
 		return ret;
 	}
+
+	public void setToken(String TOKEN) {
+		this.token = TOKEN;
+	}
 }

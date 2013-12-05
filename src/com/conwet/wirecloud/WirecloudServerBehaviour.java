@@ -20,9 +20,11 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 
     public WirecloudServerBehaviour() {
 		super();
-		
+		//System.out.println(getServer().getHost());
+		//ping = new ServerMonitoringThread("http://"+ getServer().getHost() +":"+ getServer().getAttribute("PORT", 80) + "/api/features", this);
 		ping = new ServerMonitoringThread("http://localhost:8000/api/features", this);
-	}
+
+    }
 
 	@Override
 	protected void publishStart(IProgressMonitor monitor) throws CoreException {
@@ -101,14 +103,6 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 	protected void initialize(IProgressMonitor monitor) {
 		// TODO Auto-generated method stub
 		super.initialize(monitor);
-//		try {
-//			this.getServer().start("hola", monitor);
-//		} catch (CoreException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		//this.setServerState(IServer.STATE_STARTING);
-
 	}
 
 	@Override
@@ -153,7 +147,6 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 	@Override
 	public void startModule(IModule[] module, IProgressMonitor monitor)
 			throws CoreException {
-		System.out.println("Starting MODULEEEEE....");
 		super.startModule(module, monitor);
 	}
 
