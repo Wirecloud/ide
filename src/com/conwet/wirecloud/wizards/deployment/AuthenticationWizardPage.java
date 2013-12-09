@@ -1,10 +1,9 @@
-package com.conwet.wirecloud.wizards;
+package com.conwet.wirecloud.wizards.deployment;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
-import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
@@ -12,6 +11,8 @@ import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.wst.server.core.IServerWorkingCopy;
+import org.eclipse.wst.server.core.TaskModel;
 import org.eclipse.wst.server.ui.wizard.IWizardHandle;
 import org.eclipse.wst.server.ui.wizard.WizardFragment;
 
@@ -75,6 +76,8 @@ public class AuthenticationWizardPage extends WizardFragment {
 					page.code = parameters.getParameter("code");
 					page.token = API.obtainAuthToken(page.code);
 					page.setComplete(page.token != null);
+					getServer().setAttribute("TOKEN", page.token);
+					
 				}
 			}
 
@@ -87,21 +90,13 @@ public class AuthenticationWizardPage extends WizardFragment {
 		setComplete(true);
 		return container;
 	}
+	
+	private IServerWorkingCopy getServer() {
+		IServerWorkingCopy server = (IServerWorkingCopy) getTaskModel()
+				.getObject( TaskModel.TASK_SERVER );
+		return server;
+	}
 
-//	@Override
-//		public void setVisible(boolean visible) {
-//	
-//			if (visible) {
-//				WirecloudAPI wirecloudAPI = getWirecloudAPIFromWizardInstance();
-//				try {
-//					browser.setUrl(wirecloudAPI.getAuthURL("WirecloudIDE"));
-//				} catch (OAuthSystemException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//			
-//			super.setVisible(visible);
-//		}
 
 	private WirecloudAPI getWirecloudAPIFromWizardInstance(){
 		return (WirecloudAPI) getTaskModel().getObject("WirecloudAPI");

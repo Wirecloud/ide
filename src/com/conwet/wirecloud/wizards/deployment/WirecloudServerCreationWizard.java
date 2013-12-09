@@ -1,4 +1,4 @@
-package com.conwet.wirecloud.wizards;
+package com.conwet.wirecloud.wizards.deployment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,5 @@ public WirecloudServerCreationWizard(){
 		list.add(this.authenticationWizardPage);
 		return list;
 	}
-
-		
 
 }

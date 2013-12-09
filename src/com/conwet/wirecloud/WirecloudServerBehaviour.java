@@ -16,16 +16,15 @@ import org.eclipse.wst.server.core.model.ServerBehaviourDelegate;
 
 public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 
-    protected transient ServerMonitoringThread ping;
+	protected transient ServerMonitoringThread ping;
 
-    public WirecloudServerBehaviour() {
-		super();
-		//System.out.println(getServer().getHost());
-		//ping = new ServerMonitoringThread("http://"+ getServer().getHost() +":"+ getServer().getAttribute("PORT", 80) + "/api/features", this);
-		ping = new ServerMonitoringThread("http://localhost:8000/api/features", this);
 
-    }
-
+	@Override
+	protected void initialize(IProgressMonitor monitor) {
+		super.initialize(monitor);
+		startPingThread();
+	}
+	
 	@Override
 	protected void publishStart(IProgressMonitor monitor) throws CoreException {
 		// TODO Auto-generated method stub
@@ -99,11 +98,7 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 		super.setupLaunchConfiguration(workingCopy, monitor);
 	}
 
-	@Override
-	protected void initialize(IProgressMonitor monitor) {
-		// TODO Auto-generated method stub
-		super.initialize(monitor);
-	}
+
 
 	@Override
 	protected void addRemovedModules(List<IModule[]> moduleList,
@@ -152,20 +147,48 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 
 	@Override
 	public void stop(boolean arg0) {
+		stopPingThread();
 		this.setServerState(IServer.STATE_STOPPING);
 	}
 
-	public void setServerRunning() {
-		int state = getServer().getServerState();
-		if (state != IServer.STATE_STOPPING) {
-			this.setServerState(IServer.STATE_STARTED);
+	protected void stopPingThread(){
+		if (ping!=null){
+			ping.stop();
+			ping=null;
 		}
+		setServerStopped();
+	}
+	protected void startPingThread(){
+		try {
+			if (ping!=null){
+				ping.stop();
+			}
+			setServerState(IServer.STATE_STARTING);
+			IServer server = getServer();
+			String host = server.getHost();
+			if(host.equals("localhost"))
+				ping = new ServerMonitoringThread("http://"+ server.getHost()
+						+":"+ server.getAttribute("PORT", 80) + server.getAttribute("URLPREFIX", "/api/features"), this);
+			else ping = new ServerMonitoringThread(server.getHost()
+					+ server.getAttribute("URLPREFIX", "/api/features"), this);
+
+		} catch (Exception e) {
+			e.printStackTrace(); 
+		}
+	}
+
+	public void setServerRunning() {
+		IServer server = getServer();
+		int state = server.getServerState();
+		if (state != IServer.STATE_STARTING) 
+			this.setServerState(IServer.STATE_STARTING);
+		this.setServerState(IServer.STATE_STARTED);
 	}
 
 	public void setServerStopped() {
 		int state = getServer().getServerState();
-		if (state != IServer.STATE_STARTING) {
-			this.setServerState(IServer.STATE_STOPPED);
-		}
+		if (state != IServer.STATE_STOPPING) 
+			this.setServerState(IServer.STATE_STOPPING);
+		this.setServerState(IServer.STATE_STOPPED);
 	}
 }

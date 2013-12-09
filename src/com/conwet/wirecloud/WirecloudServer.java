@@ -81,6 +81,8 @@ public class WirecloudServer extends ServerDelegate {
 			if(remove.length>0){
 				listToRetreat=new ArrayList<>();
 				for (IModule module : remove) {
+					
+					//Se utiliza dom para leer el contenido de los tags que se utilizan para eliminar los widgets
 					IProject project = module.getProject();
 					File fXmlFile = new File(project.getLocation() + "/config.xml");
 					DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -96,7 +98,7 @@ public class WirecloudServer extends ServerDelegate {
 						String Name = eElement.getElementsByTagName("Name").item(0).getTextContent();
 						String version = eElement.getElementsByTagName("Version").item(0).getTextContent();
 						String element = vendor+"/"+Name+"/"+version;
-						//System.out.println(element);
+					
 						listToRetreat.add(element);
 					}
 				}
@@ -117,13 +119,13 @@ public class WirecloudServer extends ServerDelegate {
 
 	@Override
 	public void configurationChanged() {
-		// TODO Auto-generated method stub
+	
 		super.configurationChanged();
 	}
 
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
+
 		super.dispose();
 	}
 
@@ -131,14 +133,14 @@ public class WirecloudServer extends ServerDelegate {
 	@Override
 	public void importRuntimeConfiguration(IRuntime runtime,
 			IProgressMonitor monitor) throws CoreException {
-		// TODO Auto-generated method stub
+	
 		super.importRuntimeConfiguration(runtime, monitor);
 	}
 
 
 	@Override
 	public boolean isUseProjectSpecificSchedulingRuleOnPublish() {
-		// TODO Auto-generated method stub
+	
 		return super.isUseProjectSpecificSchedulingRuleOnPublish();
 	}
 

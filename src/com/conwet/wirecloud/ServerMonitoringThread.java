@@ -61,9 +61,10 @@ public class ServerMonitoringThread {
                 fWirecloudServer.setServerRunning();
 
             } catch (Exception e) {
-            	e.printStackTrace();
-                // pinging failed
+            	//e.printStackTrace();
             	fWirecloudServer.setServerStopped();
+            	System.err.println("pinging failed, server:"+this.fUrl+" is down");
+            	
             }
 
             try {

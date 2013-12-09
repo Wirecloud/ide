@@ -1,4 +1,4 @@
-package com.conwet.wirecloud.wizards;
+package com.conwet.wirecloud.wizards.deployment;
 
 import java.net.MalformedURLException;
 
@@ -20,19 +20,6 @@ import com.conwet.wirecloud.WirecloudAPI;
 
 public class ServerSelectionPage extends WizardFragment {
 
-	@Override
-	protected void setComplete(boolean complete) {
-		if(complete){
-			WirecloudAPI wirecloudAPI=null;
-			try {
-				wirecloudAPI = new WirecloudAPI(getUrlText());
-			} catch (MalformedURLException e1) {
-				e1.printStackTrace();
-			}
-			getTaskModel().putObject("WirecloudAPI", wirecloudAPI);
-		}
-		super.setComplete(complete);
-	}
 
 	private Text port;
 	private Text urlPrefix;
@@ -45,6 +32,25 @@ public class ServerSelectionPage extends WizardFragment {
 		return true;
 	}
 
+	@Override
+	protected void setComplete(boolean complete) {
+		if(complete){
+			//If it is complete, a wirecloud API is created to share with AuthenticationWizard. And the port number is saved.
+			WirecloudAPI wirecloudAPI=null;
+			try {
+				wirecloudAPI = new WirecloudAPI(getUrlText());
+			} catch (MalformedURLException e1) {
+				e1.printStackTrace();
+			}
+			getTaskModel().putObject("WirecloudAPI", wirecloudAPI);
+			
+			getServer().setAttribute("PORT", Integer.parseInt(this.port.getText()));
+			getServer().setAttribute("URLPREFIX", this.urlPrefix.getText());
+		}
+		
+		super.setComplete(complete);
+	}
+	
 	@Override
 	public Composite createComposite(Composite parent, IWizardHandle handle) {
 
@@ -121,8 +127,13 @@ public class ServerSelectionPage extends WizardFragment {
 
 	public String getUrlText(){
 
-	 return urlPrefix.getText().equals("/") ? "http" + "://" + getServer().getHost() + ":" + port.getText()
-			 : "http" + "://" + getServer().getHost() + ":" + port.getText() + urlPrefix.getText();
+//if the server is not localhost the port is not necessary
+	if(getServer().getHost().equals("localhost")){
+		return urlPrefix.getText().equals("/") ? "http" + "://" + getServer().getHost() + ":" + port.getText()
+					 : "http" + "://" + getServer().getHost() + ":" + port.getText() + urlPrefix.getText();
+	}
+	else return urlPrefix.getText().equals("/") ? getServer().getHost()
+			 : getServer().getHost() + urlPrefix.getText();
 		
 	}
 }
