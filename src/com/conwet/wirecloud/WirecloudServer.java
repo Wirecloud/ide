@@ -27,7 +27,7 @@ import org.w3c.dom.NodeList;
 
 
 public class WirecloudServer extends ServerDelegate {
-	private ArrayList<String> listToRetreat;
+//	private ArrayList<String> listToRetreat;
 
 
 	@Override
@@ -59,89 +59,6 @@ public class WirecloudServer extends ServerDelegate {
 	public void modifyModules(IModule[] add, IModule[] remove,
 			IProgressMonitor monitor) throws CoreException {
 
-		IServer server = this.getServer();
-		String TOKEN = server.getAttribute("TOKEN", "wirecloud_token");
-		int PORT = server.getAttribute("PORT", 80);
-		Zip zipper = new Zip();
-		WirecloudAPI api=null;
-		try {
-			if(server.getHost().equals("localhost"))
-				api = new WirecloudAPI("http://" + server.getHost() + ":" + PORT);
-			else
-				api = new WirecloudAPI(server.getHost());
-			api.setToken(TOKEN);
-			if(add.length>0){
-				for (IModule module : add) {
-					IProject project = module.getProject();
-					String newPath = "/tmp/" + project.getName() + ".wgt";
-					zipper.zipFile(project.getLocation().toOSString(), newPath, true);
-					api.deployWGT(newPath, TOKEN);
-				}
-			}
-			if(remove.length>0){
-				listToRetreat=new ArrayList<>();
-				for (IModule module : remove) {
-					
-					//Se utiliza dom para leer el contenido de los tags que se utilizan para eliminar los widgets
-					IProject project = module.getProject();
-					File fXmlFile = new File(project.getLocation() + "/config.xml");
-					DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-					DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-					Document doc = dBuilder.parse(fXmlFile);
-					doc.getDocumentElement().normalize();
-					
-					NodeList nList = doc.getElementsByTagName("Catalog.ResourceDescription");
-					Node nNode = nList.item(0);
-					if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-						Element eElement = (Element) nNode;
-						String vendor = eElement.getElementsByTagName("Vendor").item(0).getTextContent();
-						String Name = eElement.getElementsByTagName("Name").item(0).getTextContent();
-						String version = eElement.getElementsByTagName("Version").item(0).getTextContent();
-						String element = vendor+"/"+Name+"/"+version;
-					
-						listToRetreat.add(element);
-					}
-				}
-				Iterator<String> resourcesToDeleteIterator = this.listToRetreat.iterator();
-				
-				while(resourcesToDeleteIterator.hasNext()){
-					api.deleteCatalogueResource(resourcesToDeleteIterator.next());
-				}
-			}
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void configurationChanged() {
-	
-		super.configurationChanged();
-	}
-
-	@Override
-	public void dispose() {
-
-		super.dispose();
-	}
-
-
-	@Override
-	public void importRuntimeConfiguration(IRuntime runtime,
-			IProgressMonitor monitor) throws CoreException {
-	
-		super.importRuntimeConfiguration(runtime, monitor);
-	}
-
-
-	@Override
-	public boolean isUseProjectSpecificSchedulingRuleOnPublish() {
-	
-		return super.isUseProjectSpecificSchedulingRuleOnPublish();
 	}
 
 

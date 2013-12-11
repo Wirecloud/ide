@@ -1,7 +1,16 @@
 package com.conwet.wirecloud;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -13,80 +22,139 @@ import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.model.PublishOperation;
 import org.eclipse.wst.server.core.model.ServerBehaviourDelegate;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 
-	protected transient ServerMonitoringThread ping;
 
+
+	protected transient ServerMonitoringThread ping;
 
 	@Override
 	protected void initialize(IProgressMonitor monitor) {
 		super.initialize(monitor);
 		startPingThread();
 	}
-	
+
 	@Override
 	protected void publishStart(IProgressMonitor monitor) throws CoreException {
-		// TODO Auto-generated method stub
+
 		super.publishStart(monitor);
 	}
 
 	@Override
 	protected void publishServer(int kind, IProgressMonitor monitor)
 			throws CoreException {
-		// TODO Auto-generated method stub
 		super.publishServer(kind, monitor);
 	}
 
-	@Override
-	protected void publishModule(int kind, int deltaKind, IModule[] module,
-			IProgressMonitor monitor) throws CoreException {
-		super.publishModule(kind, deltaKind, module, monitor);
-	}
 
 	@Override
 	protected void publishFinish(IProgressMonitor monitor) throws CoreException {
-		// TODO Auto-generated method stub
+
 		super.publishFinish(monitor);
 	}
 
 	@Override
 	public void publish(int kind, List<IModule[]> modules,
 			IProgressMonitor monitor, IAdaptable info) throws CoreException {
-		// TODO Auto-generated method stub
+		// modules null
 		super.publish(kind, modules, monitor, info);
 	}
 
+
 	@Override
 	public IStatus publish(int kind, IProgressMonitor monitor) {
-		// TODO Auto-generated method stub
 		return super.publish(kind, monitor);
 	}
 
 	@Override
 	protected IStatus publishModule(int kind, IModule[] module, int deltaKind,
 			IProgressMonitor monitor) {
-		// TODO Auto-generated method stub
 		return super.publishModule(kind, module, deltaKind, monitor);
 	}
 
 	@Override
+	protected void publishModule(int kind, int deltaKind, IModule[] module,
+			IProgressMonitor monitor) throws CoreException {
+
+		ArrayList<String> listToRetreat;
+		IServer server = this.getServer();
+		String TOKEN = server.getAttribute("TOKEN", "");
+		Zip zipper = new Zip();
+		WirecloudAPI api=null;
+		IProject project = module[0].getProject();
+		try {
+			if(server.getHost().equals("localhost"))
+				api = new WirecloudAPI("http://" + server.getHost() + ":" + server.getAttribute("PORT", 80));
+			else
+				api = new WirecloudAPI(server.getHost());
+			api.setToken(TOKEN);
+
+			//check deltaKind-> ADD or REMOVE module
+			if(deltaKind==ServerBehaviourDelegate.ADDED){
+				String newPath = "/tmp/" + project.getName() + ".wgt";
+				zipper.zipFile(project.getLocation().toOSString(), newPath, true);
+				api.deployWGT(newPath, TOKEN);
+			}
+			else if(deltaKind==ServerBehaviourDelegate.REMOVED || deltaKind==ServerBehaviourDelegate.CHANGED){
+				listToRetreat=new ArrayList<>();
+				//Dom is used to read the tag's content
+				File fXmlFile = new File(project.getLocation() + "/config.xml");
+				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+				DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+				Document doc = dBuilder.parse(fXmlFile);
+				doc.getDocumentElement().normalize();
+
+				NodeList nList = doc.getElementsByTagName("Catalog.ResourceDescription");
+				Node nNode = nList.item(0);
+				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+					Element eElement = (Element) nNode;
+					String vendor = eElement.getElementsByTagName("Vendor").item(0).getTextContent();
+					String Name = eElement.getElementsByTagName("Name").item(0).getTextContent();
+					String version = eElement.getElementsByTagName("Version").item(0).getTextContent();
+					String element = vendor+"/"+Name+"/"+version;
+					listToRetreat.add(element);
+				}
+				Iterator<String> resourcesToDeleteIterator = listToRetreat.iterator();
+				while(resourcesToDeleteIterator.hasNext()){
+					api.deleteCatalogueResource(resourcesToDeleteIterator.next());
+				}
+				if(deltaKind==ServerBehaviourDelegate.CHANGED){
+					String newPath = "/tmp/" + project.getName() + ".wgt";
+					zipper.zipFile(project.getLocation().toOSString(), newPath, true);
+					api.deployWGT(newPath, TOKEN);
+				}
+				
+			}
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		super.publishModule(kind, deltaKind, module, monitor);
+		
+	}
+	
+	@Override
 	protected void publishModules(int kind, List modules, List deltaKind2,
 			MultiStatus multi, IProgressMonitor monitor) {
-		// TODO Auto-generated method stub
 		super.publishModules(kind, modules, deltaKind2, multi, monitor);
 	}
 
 	@Override
 	public void restart(String launchMode) throws CoreException {
-		// TODO Auto-generated method stub
 		super.restart(launchMode);
 	}
 
 	@Override
 	protected MultiStatus performTasks(PublishOperation[] tasks,
 			IProgressMonitor monitor) {
-		// TODO Auto-generated method stub
 		return super.performTasks(tasks, monitor);
 	}
 
@@ -94,28 +162,24 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 	public void setupLaunchConfiguration(
 			ILaunchConfigurationWorkingCopy workingCopy,
 			IProgressMonitor monitor) throws CoreException {
-		// TODO Auto-generated method stub
 		super.setupLaunchConfiguration(workingCopy, monitor);
 	}
-
 
 
 	@Override
 	protected void addRemovedModules(List<IModule[]> moduleList,
 			List<Integer> kindList) {
-		// TODO Auto-generated method stub
+		//added and removed module
 		super.addRemovedModules(moduleList, kindList);
 	}
 
 	@Override
 	public IStatus canRestart(String mode) {
-		// TODO Auto-generated method stub
 		return super.canRestart(mode);
 	}
 
 	@Override
 	public boolean canRestartModule(IModule[] module) {
-		// TODO Auto-generated method stub
 		return super.canRestartModule(module);
 	}
 
@@ -135,7 +199,6 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 
 	@Override
 	public IStatus canStop() {
-		// TODO Auto-generated method stub
 		return super.canStop();
 	}
 

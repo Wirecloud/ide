@@ -136,11 +136,11 @@
    point="org.eclipse.wst.server.ui.serverImages">
   <image
      id="org.eclipse.jst.server.generic.image"
-     icon="icons/wc1.png"
+     icon="icons/wc1-mini.png"
      typeIds="org.eclipsewtp.server.wirecloud.runtime.10"/>
   <image
      id="org.eclipse.jst.server.generic.image"
-     icon="icons/wc1.png"
+     icon="icons/wc1-mini.png"
      typeIds="org.eclipsewtp.server.wirecloud.server"/>
 </extension>
 
@@ -148,7 +148,7 @@
    point="org.eclipse.wst.common.project.facet.ui.images">
   <image
      runtime-component-type="org.eclipsewtp.server.wirecloud"
-     path="icons/wc1.png"/>
+     path="icons/wc1-mini.png"/>
 </extension>
 
 <!--<extension
