@@ -16,7 +16,7 @@
     </runtimeType>
   </extension>
 
-<!-- org.eclipse.jst.server.generic.core.internal.ExternalServerBehaviour-->
+
    <extension
          point="org.eclipse.wst.server.core.serverTypes">
     <serverType
@@ -39,7 +39,6 @@
      supportsRemoteHosts="true"/>
   </extension>
  
-<!--org.eclipse.wst.server.core.model.ModuleFactoryDelegate-->
 	<extension
 		point="org.eclipse.wst.server.core.moduleFactories">
 		<moduleFactory
@@ -61,25 +60,8 @@
 
 	<extension 
 	  point="org.eclipse.wst.common.project.facet.core.runtimes">
-	  <!--<runtime-component-type id="org.eclipsewtp.server.wirecloud"/>-->
 	  <runtime-component-type id="org.eclipsewtp.server.wirecloud.runtime"/>
 	  <runtime-component-version type="org.eclipsewtp.server.wirecloud.runtime" version="1.0"/>
-	  
-	  <!-- <adapter>
-	    <runtime-component id="org.eclipsewtp.server.wirecloud" />
-	    <factory 
-	    class="org.eclipse.jst.server.core.internal.RuntimeClasspathProvider$Factory"/>
-	    <type
-	       class="org.eclipse.jst.common.project.facet.core.IClasspathProvider"/>
-	    </adapter>
-	    <adapter>
-	      <runtime-component id="org.eclipsewtp.server.wirecloud"/>
-	      <factory 
-	      class="org.eclipse.jst.server.ui.internal.RuntimeLabelProvider$Factory"/>
-	    <type
-	       class="org.eclipse.wst.common.project.facet.ui.IRuntimeComponentLabelProvider"/>
-	   </adapter>-->
-	  
 	  
 	  <supported>
 	    <runtime-component id="org.eclipsewtp.server.wirecloud.runtime" version="1.0"/>
@@ -113,12 +95,6 @@
 
 	</extension>
 
-<!--<extension
-   point="org.eclipse.jst.server.generic.core.serverdefinition">
-  <serverdefinition
-     id="org.eclipsewtp.server.wirecloud.runtime.10"
-     definitionfile="./wirecloud.serverdef"/>
-</extension>-->
 
 <extension
    point="org.eclipse.wst.server.ui.wizardFragments">
@@ -151,14 +127,6 @@
      path="icons/wc1-mini.png"/>
 </extension>
 
-<!--<extension
-   point="org.eclipse.jst.server.core.runtimeClasspathProviders">
-  <runtimeClasspathProvider
-     class="org.eclipse.jst.server.generic.core.internal
-                                  .GenericServerRuntimeTargetHandler"
-     id="org.eclipsewtp.jst.server.generic.wirecloud
-                                          .runtimeClasspathProvider"
-     runtimeTypeIds="org.eclipsewtp.server.wirecloud.*"/>
-</extension>-->
+
 
 </plugin>
