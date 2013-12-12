@@ -14,8 +14,7 @@ Require-Bundle: org.eclipse.wst.server.core;bundle-version="1.5.0",
  org.eclipse.jst.server.generic.ui;bundle-version="1.0.505",
  org.eclipse.jst.common.project.facet.core;bundle-version="1.4.201",
  org.eclipse.core.resources;bundle-version="3.8.101",
- org.eclipse.debug.core;bundle-version="3.8.0",
- com.conwetlab.wirecloud.sdk;bundle-version="5.0.20131101"
+ org.eclipse.debug.core;bundle-version="3.8.0"
 Bundle-ClassPath: libs/commons-codec-1.8.jar,
  libs/jettison-1.2.jar,
  libs/org.apache.oltu.oauth2.client-0.31.jar,
