@@ -58,6 +58,7 @@ public class AuthenticationWizardPage extends WizardFragment {
 		}
 		
 		final AuthenticationWizardPage page = this;
+		final IWizardHandle wizard_handle = handle;
 		LocationListener locationListener = new LocationListener() {
 			public void changed(LocationEvent event) {
 				Browser browser = (Browser) event.widget;
@@ -76,8 +77,8 @@ public class AuthenticationWizardPage extends WizardFragment {
 					page.code = parameters.getParameter("code");
 					page.token = API.obtainAuthToken(page.code);
 					page.setComplete(page.token != null);
+					wizard_handle.update();
 					getServer().setAttribute("TOKEN", page.token);
-					
 				}
 			}
 
@@ -87,7 +88,7 @@ public class AuthenticationWizardPage extends WizardFragment {
 		browser.addLocationListener(locationListener);
 
 		
-		setComplete(true);
+		setComplete(false);
 		return container;
 	}
 	

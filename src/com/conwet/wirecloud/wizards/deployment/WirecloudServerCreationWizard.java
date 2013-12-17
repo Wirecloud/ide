@@ -11,10 +11,10 @@ WizardFragment {
 	private ServerSelectionPage serverSelectionPage;
 	private AuthenticationWizardPage authenticationWizardPage;
 
-public WirecloudServerCreationWizard(){
-	serverSelectionPage = new ServerSelectionPage();
-	authenticationWizardPage = new AuthenticationWizardPage();
-}
+	public WirecloudServerCreationWizard() {
+		serverSelectionPage = new ServerSelectionPage();
+		authenticationWizardPage = new AuthenticationWizardPage();
+	}
 
 
 	@Override
@@ -22,6 +22,7 @@ public WirecloudServerCreationWizard(){
 		List<WizardFragment> list = new ArrayList<WizardFragment>();
 		list.add(this.serverSelectionPage);
 		list.add(this.authenticationWizardPage);
+		setComplete(false);
 		return list;
 	}
 

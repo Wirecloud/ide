@@ -34,9 +34,9 @@ public class ServerSelectionPage extends WizardFragment {
 
 	@Override
 	protected void setComplete(boolean complete) {
-		if(complete){
+		if (complete) {
 			//If it is complete, a wirecloud API is created to share with AuthenticationWizard. And the port number is saved.
-			WirecloudAPI wirecloudAPI=null;
+			WirecloudAPI wirecloudAPI = null;
 			try {
 				wirecloudAPI = new WirecloudAPI(getUrlText());
 			} catch (MalformedURLException e1) {
