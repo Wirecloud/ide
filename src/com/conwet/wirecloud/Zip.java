@@ -60,7 +60,7 @@ public class Zip {
 
     System.out.println("Successfully created " + zipFile);
   }
-
+  
   private static void addToZip(String path, String srcFile, ZipOutputStream zipOut)
     throws IOException {        
     File file = new File(srcFile);

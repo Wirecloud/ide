@@ -2,6 +2,235 @@
 <?eclipse version="3.4"?>
 <plugin>
 
+	 <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            id="com.conwetlab.wirecloud.sdk.category.wizards"
+            name="Wirecloud Project">
+      </category>
+      <wizard
+            category="com.conwetlab.wirecloud.sdk.category.wizards"
+            class="com.conwetlab.wirecloud.sdk.wizards.WidgetProjectWizard"
+            finalPerspective="com.aptana.ui.WebPerspective"
+            icon="icons/wc1.png"
+            id="com.conwetlab.wirecloud.sdk.wizard.new.widget"
+            name="Widget Project"
+            project="true">
+      </wizard>
+      <wizard
+            category="com.conwetlab.wirecloud.sdk.category.wizards"
+            class="com.conwetlab.wirecloud.sdk.wizards.OperatorProjectWizard"
+            finalPerspective="com.aptana.ui.WebPerspective"
+            icon="icons/wc5.png"
+            id="com.conwetlab.wirecloud.sdk.wizard.new.operator"
+            name="Operator Project"
+            project="true">
+      </wizard>
+      <wizard
+            category="com.conwetlab.wirecloud.sdk.category.wizards"
+            class="com.conwetlab.wirecloud.sdk.wizards.EmptyWidgetProjectWizard"
+            finalPerspective="com.aptana.ui.WebPerspective"
+            icon="icons/wc3.png"
+            id="com.conwetlab.wirecloud.sdk.wizard.new.emptyWidget"
+            name="Empty Widget Project"
+            project="true">
+      </wizard>
+      <wizard
+            category="com.conwetlab.wirecloud.sdk.category.wizards"
+            class="com.conwetlab.wirecloud.sdk.wizards.EmptyOperatorProjectWizard"
+            finalPerspective="com.aptana.ui.WebPerspective"
+            icon="icons/wc2.png"
+            id="com.conwetlab.wirecloud.sdk.wizard.new.emptyWidget"
+            name="Empty Operator Project"
+            project="true">
+      </wizard>
+      <wizard
+            category="com.conwetlab.wirecloud.sdk.category.wizards"
+            class="com.conwetlab.wirecloud.sdk.wizards.JasmineUnitTestWizard"
+            finalPerspective="com.aptana.ui.WebPerspective"
+            icon="icons/wc4.png"
+            id="com.conwetlab.wirecloud.sdk.wizard.new.test"
+            name="Jasmine Unit Test"
+            project="true">
+      </wizard>
+      <wizard
+            category="com.conwetlab.wirecloud.sdk.category.wizards"
+            class="com.conwetlab.wirecloud.sdk.wizards.EmptyJasmineUnitTestWizard"
+            finalPerspective="com.aptana.ui.WebPerspective"
+            icon="icons/wc3.png"
+            id="com.conwetlab.wirecloud.sdk.wizard.new.EmptyJasminetest"
+            name="Empty Jasmine Unit Test"
+            project="true">
+      </wizard>
+   </extension>
+   <extension
+         id="com.conwetlab.wirecloud.sdk.WidgetProjectNature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="com.conwetlab.wirecloud.sdk.natures.WidgetProjectNature">
+         </run>
+      </runtime>
+      <requires-nature
+            id="com.aptana.projects.webnature">
+      </requires-nature>
+   </extension>
+   <extension
+         id="com.conwetlab.wirecloud.sdk.OperatorProjectNature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="com.conwetlab.wirecloud.sdk.natures.OperatorProjectNature">
+         </run>
+      </runtime>
+      <requires-nature
+            id="com.aptana.projects.webnature">
+      </requires-nature>
+   </extension>
+   <extension
+         id="com.conwetlab.wirecloud.sdk.JasmineProjectNature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="com.conwetlab.wirecloud.sdk.natures.JasmineProjectNature">
+         </run>
+      </runtime>
+      <requires-nature
+            id="com.aptana.projects.webnature">
+      </requires-nature>
+   </extension>
+   <extension
+         point="org.eclipse.ui.exportWizards">
+      <category
+            id="com.conwetlab.wirecloud.sdk.category.wizards"
+            name="Wirecloud Project">
+      </category>
+      <wizard
+            category="com.conwetlab.wirecloud.sdk.category.wizards"
+            class="org.eclipse.ui.wizards.datatransfer.ZipFileExportWizard"
+            icon="icons/wc2.png"
+            id="com.conwetlab.wirecloud.sdk.wizard.export.wirecloudProject"
+            name="Export Wirecloud Project">
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <category
+            id="com.conwetlab.wirecloud.sdk.category.wizards"
+            name="Wirecloud Project">
+      </category>
+      <wizard
+            category="com.conwetlab.wirecloud.sdk.category.wizards"
+            class="org.eclipse.ui.wizards.datatransfer.ZipFileImportWizard"
+            icon="icons/wc4.png"
+            id="com.conwetlab.wirecloud.sdk.wizard.import.wirecloudProject"
+            name="Import Wirecloud Project">
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart"
+            contributorClass="org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorActionBarContributor"
+            default="true"
+            extensions="xml"
+            id="com.conwetlab.wirecloud.sdk.editors.xmlEditor"
+            name="Wirecloud XML Editor">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            class="com.conwetlab.wirecloud.sdk.properties.WirecloudPropertyPage"
+            id="com.conwetlab.wirecloud.sdk.properties.WirecloudProperties"
+            name="Wirecloud Preferences">
+      </page>
+   </extension>
+
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            id="com.conwetlab.wirecloud.sdk.categories.WirecloudDeploymentCategory"
+            name="Wirecloud Deployment">
+      </category>
+      <command
+            categoryId="com.conwetlab.wirecloud.sdk.categories.WirecloudDeploymentCategory"
+            id="com.conwetlab.wirecloud.sdk.commands.WirecloudDeploymentCommand"
+            name="Wirecloud Deployment Command">
+      </command>
+      <command
+            categoryId="com.conwetlab.wirecloud.sdk.categories.WirecloudDeploymentCategory"
+            id="com.conwetlab.wirecloud.sdk.commands.WirecloudRetreatCommand"
+            name="Wirecloud Retreat Command">
+      </command>
+      
+      
+      <command 
+      		categoryId="com.conwetlab.wirecloud.sdk.categories.WirecloudDeploymentCategory"
+      		id="com.conwetlab.wirecloud.sdk.commands.ExplorerWidgetDeploy" 
+      		name="Explorer Widget Deploy Command">
+  	  </command>
+      
+      
+      
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+         
+      <handler
+            class="com.conwetlab.wirecloud.sdk.deployment.WirecloudDeploymentHandler"
+            commandId="com.conwetlab.wirecloud.sdk.commands.WirecloudDeploymentCommand">
+      </handler>
+      <handler
+            class="com.conwetlab.wirecloud.sdk.deployment.WirecloudRetreatHandler"
+            commandId="com.conwetlab.wirecloud.sdk.commands.WirecloudRetreatCommand">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="com.conwetlab.wirecloud.sdk.toolbars.deploymentToolbar">
+            <command
+                  commandId="com.conwetlab.wirecloud.sdk.commands.WirecloudDeploymentCommand"
+                  icon="icons/wc1-mini.png"
+                  id="com.conwetlab.wirecloud.sdk.deploymentCommand"
+                  tooltip="Deploy a Wirecloud Project">
+            </command>
+         </toolbar>
+      </menuContribution>
+
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="com.conwetlab.wirecloud.sdk.toolbars.retreatToolbar">
+            <command
+                  commandId="com.conwetlab.wirecloud.sdk.commands.WirecloudRetreatCommand"
+                  icon="icons/wc1-miniCross.png"
+                  id="com.conwetlab.wirecloud.sdk.retreatCommand"
+                  tooltip="Retreat a Wirecloud Project">
+            </command>
+         </toolbar>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="com.aptana.ui.WebPerspective">
+         <view
+               id="com.aptana.webserver.ui.view"
+               minimized="false"
+               relationship="stack"
+               relative="org.eclipse.ui.views.ProblemView"
+               visible="true">
+         </view>
+      </perspectiveExtension>
+   </extension>
+
+
+
+
    <extension
          point="org.eclipse.wst.server.core.runtimeTypes">
      <runtimeType
@@ -106,10 +335,14 @@
   <fragment
      id="org.eclipse.jst.server.generic.server"
      typeIds="org.eclipsewtp.server.wirecloud.server"
-     class="com.conwet.wirecloud.wizards.deployment.WirecloudServerCreationWizard"/>
+     class="com.conwet.wirecloud.wizards.WirecloudServerCreationWizard"/>
 </extension>
 <extension
    point="org.eclipse.wst.server.ui.serverImages">
+  <image
+   	id="org.eclipse.jst.server.generic.image"
+    typeIds="com.conwet.applicationmashup.mac"
+    icon="icons/web_module.gif"/>
   <image
      id="org.eclipse.jst.server.generic.image"
      icon="icons/wc1-mini.png"

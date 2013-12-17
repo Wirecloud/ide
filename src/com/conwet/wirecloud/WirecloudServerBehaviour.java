@@ -74,12 +74,15 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 	@Override
 	protected IStatus publishModule(int kind, IModule[] module, int deltaKind,
 			IProgressMonitor monitor) {
+	
 		return super.publishModule(kind, module, deltaKind, monitor);
+		
 	}
 
 	@Override
 	protected void publishModule(int kind, int deltaKind, IModule[] module,
 			IProgressMonitor monitor) throws CoreException {
+
 
 		ArrayList<String> listToRetreat;
 		IServer server = this.getServer();

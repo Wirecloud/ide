@@ -1,4 +1,4 @@
-package com.conwet.wirecloud.wizards.deployment;
+package com.conwet.wirecloud.wizards;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +24,6 @@ WizardFragment {
 		list.add(this.authenticationWizardPage);
 		setComplete(false);
 		return list;
-	}
+	}	
 
 }

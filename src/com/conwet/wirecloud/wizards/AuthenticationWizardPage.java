@@ -1,4 +1,4 @@
-package com.conwet.wirecloud.wizards.deployment;
+package com.conwet.wirecloud.wizards;
 
 import java.net.MalformedURLException;
 import java.net.URL;
