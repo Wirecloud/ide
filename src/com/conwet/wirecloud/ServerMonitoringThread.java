@@ -4,7 +4,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ServerMonitoringThread {
+
+	private static final Logger logger = LoggerFactory.getLogger(ServerMonitoringThread.class);
 
     // delay before pinging starts
     private static final int PING_DELAY = 2000;
@@ -26,8 +31,10 @@ public class ServerMonitoringThread {
      */
     public ServerMonitoringThread(String url, WirecloudServerBehaviour wirecloudServer) {
         super();
+
         this.fUrl = url;
         this.fWirecloudServer = wirecloudServer;
+
         Thread t = new Thread() {
             public void run() {
                 ping();
@@ -63,8 +70,7 @@ public class ServerMonitoringThread {
             } catch (Exception e) {
             	//e.printStackTrace();
             	fWirecloudServer.setServerStopped();
-            	System.err.println("pinging failed, server:"+this.fUrl+" is down");
-            	
+               logger.debug("HTTP ping failed, connection to server {} was refused", fWirecloudServer.getServer().getHost());
             }
 
             try {
