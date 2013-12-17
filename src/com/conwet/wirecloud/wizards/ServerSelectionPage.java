@@ -23,6 +23,7 @@ import com.conwet.wirecloud.WirecloudAPI;
 public class ServerSelectionPage extends WizardFragment {
 
 	private Combo protocol;
+	private Label hostLabel;
 	private Text port;
 	private Text urlPrefix;
 	private Composite container;
@@ -34,6 +35,12 @@ public class ServerSelectionPage extends WizardFragment {
 	@Override
 	public boolean hasComposite() {
 		return true;
+	}
+
+	@Override
+	public void enter() {
+		hostLabel.setText("://" + getServer().getHost() + ":");
+		container.layout();
 	}
 
 	@Override
@@ -72,20 +79,24 @@ public class ServerSelectionPage extends WizardFragment {
 		container.setLayout(layout2);
 		container.setLayout(layout);
 
-		layout.numColumns = 2;
-		layout2.numColumns = 2;
+		layout.numColumns = 3;
+		layout2.numColumns = 3;
 		Label label1 = new Label(container, SWT.NULL);
 		Label label2 = new Label(container, SWT.NULL);
-		//Label label3 = new Label(container, SWT.NULL);
+		Label label3 = new Label(container, SWT.NULL);
+		//Label label4 = new Label(container, SWT.NULL);
 
 		label1.setText("Protocol");
-		label2.setText("Port");
-		//label3.setText("URL prefix");
+		label2.setText("");
+		label3.setText("Port");
+		//label4.setText("URL prefix");
 
 		protocol = new Combo(container, SWT.BORDER | SWT.SINGLE);
 		protocol.add("http");
 		protocol.add("https");
 		protocol.setText(DEFAULT_PROTOCOL);
+
+		hostLabel = new Label(container, SWT.NULL);
 
 		port = new Text(container, SWT.BORDER | SWT.SINGLE);
 		port.setText(DEFAULT_PORT);
@@ -103,6 +114,7 @@ public class ServerSelectionPage extends WizardFragment {
 			}
 
 		});
+
 		/*urlPrefix = new Text(container, SWT.BORDER | SWT.SINGLE);
 		urlPrefix.setText(DEFAULT_PREFIX);
 		urlPrefix.addKeyListener(new KeyListener() {
@@ -123,10 +135,8 @@ public class ServerSelectionPage extends WizardFragment {
 
 		});*/
 
-		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-		port.setLayoutData(gd);
 		GridData gd2 = new GridData(GridData.FILL_HORIZONTAL);
-		urlPrefix.setLayoutData(gd2);
+		port.setLayoutData(gd2);
 
 		setComplete(true);
 		return container;
