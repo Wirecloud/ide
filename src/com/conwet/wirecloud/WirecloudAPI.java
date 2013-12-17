@@ -25,14 +25,14 @@ import org.apache.oltu.oauth2.common.message.types.GrantType;
 public class WirecloudAPI {
 
 	private URL urlToPost;
-	private static final String AUTH_ENDPOINT = "/oauth2/auth";
-	private static final String AUTH_TOKEN = "/oauth2/token";
-	private static final String RESOURCE_COLLECTION_PATH = "/api/resources";
-	private static final String RESOURCE_ENTRY_PATH = "/api/resource/";
+	private static final String AUTH_ENDPOINT = "oauth2/auth";
+	private static final String AUTH_TOKEN = "oauth2/token";
+	private static final String RESOURCE_COLLECTION_PATH = "api/resources";
+	private static final String RESOURCE_ENTRY_PATH = "api/resource/";
 	private String token = null;
 	private String mashableComponents = null;
 	
-	private static final String UNIVERSAL_REDIRECT_URI_PATH = "/oauth2/default_redirect_uri";
+	private static final String UNIVERSAL_REDIRECT_URI_PATH = "oauth2/default_redirect_uri";
 	public URL UNIVERSAL_REDIRECT_URI;
 
 	public WirecloudAPI(String deploymentServer) throws MalformedURLException {
@@ -40,11 +40,11 @@ public class WirecloudAPI {
 	}
 
 	public WirecloudAPI(URL deploymentServer) {
-		this.urlToPost = deploymentServer;
 		try {
+			this.urlToPost = new URL(deploymentServer.getProtocol(), deploymentServer.getHost(), deploymentServer.getPort(), deploymentServer.getPath());
 			this.UNIVERSAL_REDIRECT_URI = new URL(deploymentServer, UNIVERSAL_REDIRECT_URI_PATH);
-		} catch (Throwable t) {
-			t.printStackTrace();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -67,8 +67,10 @@ public class WirecloudAPI {
 	} 
 
 	public URL getAuthURL(String clientId, URL redirectURI) throws OAuthSystemException {
+		String url = this.urlToPost.toString() + AUTH_ENDPOINT;
+
         OAuthClientRequest request = OAuthClientRequest
-                .authorizationLocation(this.urlToPost + AUTH_ENDPOINT)
+                .authorizationLocation(url)
                 .setClientId(clientId)
                 .setResponseType("code")
                 .setRedirectURI(redirectURI.toString())
@@ -76,8 +78,8 @@ public class WirecloudAPI {
 
         try {
         	return new URL(request.getLocationUri());
-        } catch (Throwable t) {
-        	t.printStackTrace();
+        } catch (MalformedURLException e) {
+        	e.printStackTrace();
         	return null;
         }
 	}
@@ -87,9 +89,11 @@ public class WirecloudAPI {
 	}
 
 	public String obtainAuthToken(String code, URL redirectURI) {
-		 try {
+		String url = this.urlToPost.toString() + AUTH_TOKEN;
+
+		try {
 	            OAuthClientRequest request = OAuthClientRequest
-	            	.tokenLocation(this.urlToPost + AUTH_TOKEN)
+	            	.tokenLocation(url.toString())
 	                .setGrantType(GrantType.AUTHORIZATION_CODE)
 	                .setClientId("WirecloudIDE")
 	                .setClientSecret("WirecloudSecret")
@@ -111,14 +115,14 @@ public class WirecloudAPI {
 				e.printStackTrace();
 			}
 
-		 return null;
+		return null;
 	}
 
 	public String obtainAuthToken(String code) {
-		 return obtainAuthToken(code, UNIVERSAL_REDIRECT_URI);
+		return obtainAuthToken(code, UNIVERSAL_REDIRECT_URI);
 	}
 
-	public String getToken (){
+	public String getToken() {
 		return token;
 	}
 	
