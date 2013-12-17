@@ -1,6 +1,7 @@
 package com.conwet.wirecloud;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +41,15 @@ public class WirecloudAPI {
 	}
 
 	public void deployWGT(String wgtFile, String token) {
+		try {
+			httpConn(new URL(this.urlToPost, RESOURCE_COLLECTION_PATH), new File(wgtFile), token);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			
+		}
+	} 
+
+	public void deployWGT(File wgtFile, String token) {
 		try {
 			httpConn(new URL(this.urlToPost, RESOURCE_COLLECTION_PATH), wgtFile, token);
 		} catch (MalformedURLException e) {
@@ -99,7 +109,7 @@ public class WirecloudAPI {
 		return token;
 	}
 	
-	private void httpConn(URL url, String wgtFile, String token) {
+	private void httpConn(URL url, File wgtFile, String token) {
 		try {
 			FileInputStream wgt = new FileInputStream(wgtFile);
 			

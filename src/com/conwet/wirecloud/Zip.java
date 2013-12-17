@@ -38,6 +38,12 @@ public class Zip {
 
   public void zipFile(String fileToZip, String zipFile, boolean excludeContainingFolder)
     throws IOException {        
+
+	zipFile(fileToZip, new File(zipFile), excludeContainingFolder);
+  }
+
+  public void zipFile(String fileToZip, File zipFile, boolean excludeContainingFolder)
+    throws IOException {        
     ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFile));    
 
     File srcFile = new File(fileToZip);

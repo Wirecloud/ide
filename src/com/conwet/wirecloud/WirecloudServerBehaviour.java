@@ -95,12 +95,11 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 			api.setToken(TOKEN);
 
 			//check deltaKind-> ADD or REMOVE module
-			if(deltaKind==ServerBehaviourDelegate.ADDED){
-				String newPath = "/tmp/" + project.getName() + ".wgt";
+			if (deltaKind==ServerBehaviourDelegate.ADDED) {
+				File newPath = File.createTempFile(project.getName(), ".wgt");
 				zipper.zipFile(project.getLocation().toOSString(), newPath, true);
 				api.deployWGT(newPath, TOKEN);
-			}
-			else if(deltaKind==ServerBehaviourDelegate.REMOVED || deltaKind==ServerBehaviourDelegate.CHANGED){
+			} else if(deltaKind == ServerBehaviourDelegate.REMOVED || deltaKind == ServerBehaviourDelegate.CHANGED) {
 				listToRetreat=new ArrayList<>();
 				//Dom is used to read the tag's content
 				File fXmlFile = new File(project.getLocation() + "/config.xml");
@@ -120,11 +119,11 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 					listToRetreat.add(element);
 				}
 				Iterator<String> resourcesToDeleteIterator = listToRetreat.iterator();
-				while(resourcesToDeleteIterator.hasNext()){
+				while (resourcesToDeleteIterator.hasNext()) {
 					api.deleteCatalogueResource(resourcesToDeleteIterator.next());
 				}
-				if(deltaKind==ServerBehaviourDelegate.CHANGED){
-					String newPath = "/tmp/" + project.getName() + ".wgt";
+				if (deltaKind == ServerBehaviourDelegate.CHANGED) {
+					File newPath = File.createTempFile(project.getName(), ".wgt");
 					zipper.zipFile(project.getLocation().toOSString(), newPath, true);
 					api.deployWGT(newPath, TOKEN);
 				}
@@ -138,7 +137,6 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 			e.printStackTrace();
 		}
 		super.publishModule(kind, deltaKind, module, monitor);
-		
 	}
 	
 	@Override
