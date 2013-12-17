@@ -1,12 +1,14 @@
 package com.conwet.wirecloud.wizards;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -20,11 +22,13 @@ import com.conwet.wirecloud.WirecloudAPI;
 
 public class ServerSelectionPage extends WizardFragment {
 
-
+	private Combo protocol;
 	private Text port;
 	private Text urlPrefix;
 	private Composite container;
-	private final String DEFAULT_PORT = "80";
+
+	private final String DEFAULT_PROTOCOL = "https";
+	private final String DEFAULT_PORT = "443";
 	private final String DEFAULT_PREFIX = "/";
 
 	@Override
@@ -33,22 +37,26 @@ public class ServerSelectionPage extends WizardFragment {
 	}
 
 	@Override
-	protected void setComplete(boolean complete) {
-		if (complete) {
-			//If it is complete, a wirecloud API is created to share with AuthenticationWizard. And the port number is saved.
+	public void exit() {
+		super.exit();
+
+		if (isComplete()) {
+		
 			WirecloudAPI wirecloudAPI = null;
 			try {
-				wirecloudAPI = new WirecloudAPI(getUrlText());
+				wirecloudAPI = new WirecloudAPI(getFinalURL());
 			} catch (MalformedURLException e1) {
 				e1.printStackTrace();
 			}
 			getTaskModel().putObject("WirecloudAPI", wirecloudAPI);
 			
 			getServer().setAttribute("PORT", Integer.parseInt(this.port.getText()));
-			getServer().setAttribute("URLPREFIX", this.urlPrefix.getText());
+			getServer().setAttribute("URLPREFIX", "/" /*this.urlPrefix.getText()*/);
+		} else {
+			getTaskModel().putObject("WirecloudAPI", null);
+			getServer().setAttribute("PORT", "");
+			getServer().setAttribute("URLPREFIX", "");		
 		}
-		
-		super.setComplete(complete);
 	}
 	
 	@Override
@@ -56,6 +64,7 @@ public class ServerSelectionPage extends WizardFragment {
 
 		handle.setTitle("Select port and URL prefix");
 		handle.setDescription("Select the port and the URL path prefix of the Wirecloud Server");
+		final IWizardHandle wizard_handle = handle;
 
 		container = new Composite(parent, SWT.NULL);
 		GridLayout layout = new GridLayout();
@@ -67,9 +76,17 @@ public class ServerSelectionPage extends WizardFragment {
 		layout2.numColumns = 2;
 		Label label1 = new Label(container, SWT.NULL);
 		Label label2 = new Label(container, SWT.NULL);
+		//Label label3 = new Label(container, SWT.NULL);
 
-		label1.setText("Port");
-		label2.setText("UrlPrefix");
+		label1.setText("Protocol");
+		label2.setText("Port");
+		//label3.setText("URL prefix");
+
+		protocol = new Combo(container, SWT.BORDER | SWT.SINGLE);
+		protocol.add("http");
+		protocol.add("https");
+		protocol.setText(DEFAULT_PROTOCOL);
+
 		port = new Text(container, SWT.BORDER | SWT.SINGLE);
 		port.setText(DEFAULT_PORT);
 		port.addKeyListener(new KeyListener() {
@@ -81,13 +98,12 @@ public class ServerSelectionPage extends WizardFragment {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				if (!port.getText().isEmpty()) {
-					setComplete(true);
-				}
+				setComplete(!port.getText().isEmpty());
+				wizard_handle.update();
 			}
 
 		});
-		urlPrefix = new Text(container, SWT.BORDER | SWT.SINGLE);
+		/*urlPrefix = new Text(container, SWT.BORDER | SWT.SINGLE);
 		urlPrefix.setText(DEFAULT_PREFIX);
 		urlPrefix.addKeyListener(new KeyListener() {
 
@@ -105,13 +121,12 @@ public class ServerSelectionPage extends WizardFragment {
 
 			}
 
-		});
+		});*/
 
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		port.setLayoutData(gd);
-		GridData gd2=new GridData(GridData.FILL_HORIZONTAL);
+		GridData gd2 = new GridData(GridData.FILL_HORIZONTAL);
 		urlPrefix.setLayoutData(gd2);
-
 
 		setComplete(true);
 		return container;
@@ -125,15 +140,7 @@ public class ServerSelectionPage extends WizardFragment {
 		return server;
 	}
 
-	public String getUrlText(){
-
-//if the server is not localhost the port is not necessary
-	if(getServer().getHost().equals("localhost")){
-		return urlPrefix.getText().equals("/") ? "http" + "://" + getServer().getHost() + ":" + port.getText()
-					 : "http" + "://" + getServer().getHost() + ":" + port.getText() + urlPrefix.getText();
-	}
-	else return urlPrefix.getText().equals("/") ? getServer().getHost()
-			 : getServer().getHost() + urlPrefix.getText();
-		
+	public URL getFinalURL() throws NumberFormatException, MalformedURLException {
+		return new URL(protocol.getText(), getServer().getHost(), Integer.parseInt(port.getText()), "/" /*urlPrefix.getText()*/);
 	}
 }

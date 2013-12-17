@@ -33,11 +33,19 @@ public class WirecloudAPI {
 	private String mashableComponents = null;
 	
 	private static final String UNIVERSAL_REDIRECT_URI_PATH = "/oauth2/default_redirect_uri";
-	public String UNIVERSAL_REDIRECT_URI;
+	public URL UNIVERSAL_REDIRECT_URI;
 
 	public WirecloudAPI(String deploymentServer) throws MalformedURLException {
-		this.urlToPost = new URL(deploymentServer);
-		this.UNIVERSAL_REDIRECT_URI = this.urlToPost + UNIVERSAL_REDIRECT_URI_PATH;
+		this(new URL(deploymentServer));
+	}
+
+	public WirecloudAPI(URL deploymentServer) {
+		this.urlToPost = deploymentServer;
+		try {
+			this.UNIVERSAL_REDIRECT_URI = new URL(deploymentServer, UNIVERSAL_REDIRECT_URI_PATH);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 
 	public void deployWGT(String wgtFile, String token) {
@@ -58,29 +66,34 @@ public class WirecloudAPI {
 		}
 	} 
 
-	public String getAuthURL(String clientId, String redirectURI) throws OAuthSystemException {
+	public URL getAuthURL(String clientId, URL redirectURI) throws OAuthSystemException {
         OAuthClientRequest request = OAuthClientRequest
                 .authorizationLocation(this.urlToPost + AUTH_ENDPOINT)
                 .setClientId(clientId)
                 .setResponseType("code")
-                .setRedirectURI(redirectURI)
+                .setRedirectURI(redirectURI.toString())
                 .buildQueryMessage();
 
-        return request.getLocationUri();
+        try {
+        	return new URL(request.getLocationUri());
+        } catch (Throwable t) {
+        	t.printStackTrace();
+        	return null;
+        }
 	}
 
-	public String getAuthURL(String clientId) throws OAuthSystemException {
+	public URL getAuthURL(String clientId) throws OAuthSystemException {
         return getAuthURL(clientId, UNIVERSAL_REDIRECT_URI);
 	}
 
-	public String obtainAuthToken(String code, String redirectURI) {
+	public String obtainAuthToken(String code, URL redirectURI) {
 		 try {
 	            OAuthClientRequest request = OAuthClientRequest
 	            	.tokenLocation(this.urlToPost + AUTH_TOKEN)
 	                .setGrantType(GrantType.AUTHORIZATION_CODE)
 	                .setClientId("WirecloudIDE")
 	                .setClientSecret("WirecloudSecret")
-	                .setRedirectURI(redirectURI)
+	                .setRedirectURI(redirectURI.toString())
 	                .setCode(code)
 	                .buildBodyMessage();
 
@@ -204,7 +217,6 @@ public class WirecloudAPI {
 			// Request Headers
 			conn.setRequestMethod("DELETE");
 			conn.setRequestProperty("Authorization", "OAuth2" + " " + token);
-			//conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 			conn.setRequestProperty("Accept", "application/json");
 			
 			//Get Response	

@@ -25,6 +25,8 @@ public class AuthenticationWizardPage extends WizardFragment {
 	private String code;
 	private String token;
 	private Browser browser;
+	private IWizardHandle handle;
+	private LocationListener locationListener;
 
 	@Override
 	public boolean hasComposite() {
@@ -41,25 +43,33 @@ public class AuthenticationWizardPage extends WizardFragment {
 		handle.setDescription("Authenticate in Wirecloud");
 		container = new Composite(parent, SWT.NULL);
 		container.setLayout(new FillLayout());
-		
-		
+
+		this.handle = handle;
+
 		try {
 			browser = new Browser(container, SWT.NONE);
 		} catch (SWTError e) {
 			System.err.println("Error en la creación de browser!");
 		}
+		
+		setComplete(false);
+		return container;
+	}
+
+	@Override
+	public void enter() {
 
 		final WirecloudAPI API = getWirecloudAPIFromWizardInstance();
-		
+
 		try {
-			browser.setUrl(API.getAuthURL("WirecloudIDE"));
+			browser.setUrl(API.getAuthURL("WirecloudIDE").toString());
 		} catch (OAuthSystemException e1) {
 			e1.printStackTrace();
 		}
-		
+
 		final AuthenticationWizardPage page = this;
 		final IWizardHandle wizard_handle = handle;
-		LocationListener locationListener = new LocationListener() {
+		locationListener = new LocationListener() {
 			public void changed(LocationEvent event) {
 				Browser browser = (Browser) event.widget;
 				URL currentURL;
@@ -71,7 +81,7 @@ public class AuthenticationWizardPage extends WizardFragment {
 				}
 
 				
-				if (browser.getUrl().startsWith(API.UNIVERSAL_REDIRECT_URI)) {
+				if (browser.getUrl().startsWith(API.UNIVERSAL_REDIRECT_URI.toString())) {
 					QueryParameters parameters = new QueryParameters(
 							currentURL.getQuery());
 					page.code = parameters.getParameter("code");
@@ -87,11 +97,18 @@ public class AuthenticationWizardPage extends WizardFragment {
 		};
 		browser.addLocationListener(locationListener);
 
-		
-		setComplete(false);
-		return container;
+		this.handle.update();
+		super.enter();
 	}
-	
+
+	@Override
+	public void exit() {
+		if (locationListener != null) {
+			browser.removeLocationListener(locationListener);
+			locationListener = null;
+		}
+	}
+
 	private IServerWorkingCopy getServer() {
 		IServerWorkingCopy server = (IServerWorkingCopy) getTaskModel()
 				.getObject( TaskModel.TASK_SERVER );
