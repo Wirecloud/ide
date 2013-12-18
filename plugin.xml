@@ -185,11 +185,15 @@
 </extension>
 
 <extension point="org.eclipse.wst.common.project.facet.core.facets">
-	  <project-facet id="com.conwet.applicationmashup.mac">
-	    <label>Mashable Application Component</label>
+    <project-facet id="com.conwet.applicationmashup.mac">
+        <label>Mashable Application Component</label>
 	    <description>Enables the project to be deployed as a Mashable Application Component.</description>
 	  </project-facet>
 	  <project-facet-version facet="com.conwet.applicationmashup.mac" version="1.0">
+
+    <constraint>
+        <requires facet="wst.jsdt.web"/>
+    </constraint>
 
 		<action type="INSTALL">
       		<delegate class="com.conwet.wirecloud.MACFacetInstallDelegate"/>
@@ -236,7 +240,5 @@
      runtime-component-type="org.eclipsewtp.server.wirecloud"
      path="icons/wc1-mini.png"/>
 </extension>
-
-
 
 </plugin>

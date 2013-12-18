@@ -18,9 +18,7 @@ import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
-import org.eclipse.wst.common.project.facet.core.IFacetedProjectWorkingCopy;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
-import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import org.osgi.framework.Bundle;
 
@@ -65,11 +63,20 @@ public abstract class ProjectSupport {
                 e.printStackTrace();
             }
         	IFacetedProject facetedProject = ProjectFacetsManager.create(newProject, true, null);
-        	
-            IProjectFacet macFacet = ProjectFacetsManager.getProjectFacet("com.conwet.applicationmashup.mac");
+
+            // Install JavaScrit and MAC facets
             Set<IProjectFacet> facets = new HashSet<>(facetedProject.getFixedProjectFacets());
-            facets.add(macFacet);
+
+            IProjectFacet jsFacet = ProjectFacetsManager.getProjectFacet("wst.jsdt.web");
+            facets.add(jsFacet);
+            facetedProject.installProjectFacet(jsFacet.getDefaultVersion(), null, null);
+
+            facetedProject.setFixedProjectFacets(facets);
+            IProjectFacet macFacet = ProjectFacetsManager.getProjectFacet("com.conwet.applicationmashup.mac");
             facetedProject.installProjectFacet(macFacet.getDefaultVersion(), null, null);
+
+            facets.add(jsFacet);
+            facets.add(macFacet);
             facetedProject.setFixedProjectFacets(facets);
         }
     	
