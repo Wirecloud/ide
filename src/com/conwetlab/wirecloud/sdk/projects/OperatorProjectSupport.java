@@ -43,7 +43,6 @@ public class OperatorProjectSupport extends ProjectSupport {
         IProject project = null;
         try {
         	project = createBaseProject(projectName, location);
-        	addNature(project, "com.aptana.projects.webnature");
             addNature(project, nature);
 
             String[] paths = {IMG_DIR_PATH, JS_DIR_PATH};
