@@ -230,4 +230,12 @@
      path="icons/wc1-mini.png"/>
 </extension>
 
+<extension
+        point="org.eclipse.wst.xml.core.catalogContributions">
+        <catalogContribution id="default">
+                <uri
+                        name="http://wirecloud.conwet.fi.upm.es/ns/template#"
+                        uri="platform:/plugin/com.conwet.wirecloud.eclipse.plugin/static/mashable_application_component.xsd" />
+        </catalogContribution>
+</extension>
 </plugin>
