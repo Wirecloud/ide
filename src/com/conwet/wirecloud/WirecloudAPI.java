@@ -9,8 +9,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.apache.oltu.oauth2.client.OAuthClient;
@@ -28,7 +26,7 @@ public class WirecloudAPI {
 	private static final String AUTH_ENDPOINT = "oauth2/auth";
 	private static final String AUTH_TOKEN = "oauth2/token";
 	private static final String RESOURCE_COLLECTION_PATH = "api/resources";
-	private static final String RESOURCE_ENTRY_PATH = "api/resource/";
+	private static final String RESOURCE_ENTRY_PATH = "api/resource";
 	private String token = null;
 	private String mashableComponents = null;
 	
@@ -211,8 +209,7 @@ public class WirecloudAPI {
 
 	public void deleteCatalogueResource(String resource) {
 		try {
-			URI resourceToDelete = manageURL(this.urlToPost, RESOURCE_ENTRY_PATH, resource);
-			URL resourceURL = resourceToDelete.toURL();
+			URL resourceURL = manageURL(this.urlToPost, RESOURCE_ENTRY_PATH, resource);
 			HttpURLConnection conn = (HttpURLConnection) resourceURL.openConnection();
 			conn.setDoInput(true);
 			conn.setDoOutput(true);
@@ -242,11 +239,11 @@ public class WirecloudAPI {
 		}
 	}
 	
-	private URI manageURL(URL host, String path, String resource){
-		URI ret = null;
+	private URL manageURL(URL base, String path, String resource) {
+		URL ret = null;
 		try {
-			ret = new URI(host.getProtocol(), null, host.getHost(), host.getPort(), path + resource, null, null);
-		} catch (URISyntaxException e) {
+			ret = new URL(base, path + "/" + resource);
+		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
 		

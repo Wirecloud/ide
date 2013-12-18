@@ -20,8 +20,6 @@ import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 
-import com.conwetlab.wirecloud.sdk.wizards.retreatment.RetreatmentsManager;
-
 
 public class WirecloudAPI {
 
@@ -182,11 +180,6 @@ public class WirecloudAPI {
 	public String getMashableComponents(){
 		obtainMashableComponents();
 		return mashableComponents;
-	}
-	
-	public void deleteCatalogueResources(){
-		RetreatmentsManager manager = RetreatmentsManager.getInstance(this);
-		manager.deleteResources();	
 	}
 
 	public void deleteCatalogueResource(String resource) {
