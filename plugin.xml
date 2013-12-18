@@ -99,14 +99,6 @@
             name="Wirecloud XML Editor">
       </editor>
    </extension>
-   <extension
-         point="org.eclipse.ui.propertyPages">
-      <page
-            class="com.conwetlab.wirecloud.sdk.properties.WirecloudPropertyPage"
-            id="com.conwetlab.wirecloud.sdk.properties.WirecloudProperties"
-            name="Wirecloud Preferences">
-      </page>
-   </extension>
 
    <extension
          point="org.eclipse.ui.commands">
