@@ -24,14 +24,6 @@
             name="Operator Project"
             project="true">
       </wizard>
-      <wizard
-            category="com.conwetlab.wirecloud.sdk.category.wizards"
-            class="com.conwetlab.wirecloud.sdk.wizards.JasmineUnitTestWizard"
-            icon="icons/wc4.png"
-            id="com.conwetlab.wirecloud.sdk.wizard.new.test"
-            name="Jasmine Unit Test"
-            project="true">
-      </wizard>
    </extension>
    <extension
          id="com.conwetlab.wirecloud.sdk.WidgetProjectNature"
@@ -48,15 +40,6 @@
       <runtime>
          <run
                class="com.conwetlab.wirecloud.sdk.natures.OperatorProjectNature">
-         </run>
-      </runtime>
-   </extension>
-   <extension
-         id="com.conwetlab.wirecloud.sdk.JasmineProjectNature"
-         point="org.eclipse.core.resources.natures">
-      <runtime>
-         <run
-               class="com.conwetlab.wirecloud.sdk.natures.JasmineProjectNature">
          </run>
       </runtime>
    </extension>
