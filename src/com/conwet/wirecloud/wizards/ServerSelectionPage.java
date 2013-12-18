@@ -57,10 +57,13 @@ public class ServerSelectionPage extends WizardFragment {
 			}
 			getTaskModel().putObject("WirecloudAPI", wirecloudAPI);
 			
+			getServer().setAttribute("PROTOCOL", this.protocol.getText());
 			getServer().setAttribute("PORT", Integer.parseInt(this.port.getText()));
 			getServer().setAttribute("URLPREFIX", "/" /*this.urlPrefix.getText()*/);
 		} else {
 			getTaskModel().putObject("WirecloudAPI", null);
+
+			getServer().setAttribute("PROTOCOL", "");
 			getServer().setAttribute("PORT", "");
 			getServer().setAttribute("URLPREFIX", "");		
 		}

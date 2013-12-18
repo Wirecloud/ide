@@ -3,6 +3,7 @@ package com.conwet.wirecloud;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -222,19 +223,23 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 		}
 		setServerStopped();
 	}
+
+	private URL getFinalURL() throws NumberFormatException, MalformedURLException {
+		IServer server = getServer();
+		
+		return new URL(server.getAttribute("PROTOCOL", "http"),
+				server.getHost(),
+				Integer.parseInt(server.getAttribute("PORT", "80")),
+				server.getAttribute("URLPREFIX", "/"));
+	}
+
 	protected void startPingThread(){
 		try {
-			if (ping!=null){
+			if (ping != null) {
 				ping.stop();
 			}
 			setServerState(IServer.STATE_STARTING);
-			IServer server = getServer();
-			String host = server.getHost();
-			if(host.equals("localhost"))
-				ping = new ServerMonitoringThread("http://"+ server.getHost()
-						+":"+ server.getAttribute("PORT", 80) + server.getAttribute("URLPREFIX", "/api/features"), this);
-			else ping = new ServerMonitoringThread(server.getHost()
-					+ server.getAttribute("URLPREFIX", "/api/features"), this);
+			ping = new ServerMonitoringThread((new URL(getFinalURL(), "api/features")).toString(), this);
 
 		} catch (Exception e) {
 			e.printStackTrace(); 
