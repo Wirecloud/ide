@@ -132,14 +132,8 @@ public abstract class ProjectSupport {
         	IFile file = newProject.getFile(path);
         	createFile(file, fileTemplate);
         }
-        addStaticFiles(newProject);
     }
-    
-    protected void addStaticFiles(IProject project){
-    	createFileFromStaticTemplate(project, "static/img/catalogue.png","images/catalogue.png");
-        createFileFromStaticTemplate(project, "static/WirecloudJSLib/WirecloudJSLib.js", "js/.WirecloudJSLib.js");
-    }
-    
+
     protected static void createFileFromStaticTemplate(IProject newProject, String templateRoute, String destRoute){
     	Bundle bundle = Platform.getBundle("com.conwetlab.wirecloud.sdk");
     	URL fileURL = bundle.getEntry(templateRoute);
