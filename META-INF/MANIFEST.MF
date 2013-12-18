@@ -6,22 +6,9 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: org.eclipse.wst.server.core;bundle-version="1.5.0",
  org.eclipse.wst.server.ui;bundle-version="1.4.101",
- org.eclipse.wst.common.project.facet.core;bundle-version="1.4.300",
  org.eclipse.wst.common.project.facet.ui;bundle-version="1.4.300",
- org.eclipse.jst.server.core;bundle-version="1.2.302",
- org.eclipse.jst.server.ui;bundle-version="1.1.202",
- org.eclipse.jst.server.generic.core;bundle-version="1.0.800",
- org.eclipse.jst.server.generic.ui;bundle-version="1.0.505",
- org.eclipse.jst.common.project.facet.core;bundle-version="1.4.201",
  org.eclipse.debug.core;bundle-version="3.8.0",
- org.eclipse.core.runtime,
- org.eclipse.ui,
- org.eclipse.ui.ide;bundle-version="3.7.0",
- org.eclipse.core.resources,
- org.eclipse.wst.xml.ui;bundle-version="1.1.202",
- org.eclipse.jdt.core;bundle-version="3.8.3",
- javax.servlet;bundle-version="3.0.0",
- org.eclipse.wst.common.project.facet.core;bundle-version="1.4.300"
+ org.eclipse.ui.ide;bundle-version="3.7.0"
 Bundle-ClassPath: .,
  libs/commons-codec-1.8.jar,
  libs/jettison-1.2.jar,
