@@ -71,17 +71,6 @@
             name="Import Wirecloud Project">
       </wizard>
    </extension>
-   <extension
-         point="org.eclipse.ui.editors">
-      <editor
-            class="org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart"
-            contributorClass="org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorActionBarContributor"
-            default="true"
-            extensions="xml"
-            id="com.conwetlab.wirecloud.sdk.editors.xmlEditor"
-            name="Wirecloud XML Editor">
-      </editor>
-   </extension>
 
    <extension
          point="org.eclipse.ui.commands">
