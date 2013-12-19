@@ -5,69 +5,69 @@
 	 <extension
          point="org.eclipse.ui.newWizards">
       <category
-            id="com.conwetlab.wirecloud.sdk.category.wizards"
+            id="com.conwet.wirecloud.ide.category.wizards"
             name="Wirecloud Project">
       </category>
       <wizard
-            category="com.conwetlab.wirecloud.sdk.category.wizards"
-            class="com.conwetlab.wirecloud.sdk.wizards.WidgetProjectWizard"
+            category="com.conwet.wirecloud.ide.category.wizards"
+            class="com.conwet.wirecloud.ide.wizards.WidgetProjectWizard"
             icon="icons/wc1.png"
-            id="com.conwetlab.wirecloud.sdk.wizard.new.widget"
+            id="com.conwet.wirecloud.ide.wizard.new.widget"
             name="Widget Project"
             project="true">
       </wizard>
       <wizard
-            category="com.conwetlab.wirecloud.sdk.category.wizards"
-            class="com.conwetlab.wirecloud.sdk.wizards.OperatorProjectWizard"
+            category="com.conwet.wirecloud.ide.category.wizards"
+            class="com.conwet.wirecloud.ide.wizards.OperatorProjectWizard"
             icon="icons/wc5.png"
-            id="com.conwetlab.wirecloud.sdk.wizard.new.operator"
+            id="com.conwet.wirecloud.ide.wizard.new.operator"
             name="Operator Project"
             project="true">
       </wizard>
    </extension>
    <extension
-         id="com.conwetlab.wirecloud.sdk.WidgetProjectNature"
+         id="com.conwet.wirecloud.ide.WidgetProjectNature"
          point="org.eclipse.core.resources.natures">
       <runtime>
          <run
-               class="com.conwetlab.wirecloud.sdk.natures.WidgetProjectNature">
+               class="com.conwet.wirecloud.ide.natures.WidgetProjectNature">
          </run>
       </runtime>
    </extension>
    <extension
-         id="com.conwetlab.wirecloud.sdk.OperatorProjectNature"
+         id="com.conwet.wirecloud.ide.OperatorProjectNature"
          point="org.eclipse.core.resources.natures">
       <runtime>
          <run
-               class="com.conwetlab.wirecloud.sdk.natures.OperatorProjectNature">
+               class="com.conwet.wirecloud.ide.natures.OperatorProjectNature">
          </run>
       </runtime>
    </extension>
    <extension
          point="org.eclipse.ui.exportWizards">
       <category
-            id="com.conwetlab.wirecloud.sdk.category.wizards"
+            id="com.conwet.wirecloud.ide.category.wizards"
             name="Wirecloud Project">
       </category>
       <wizard
-            category="com.conwetlab.wirecloud.sdk.category.wizards"
+            category="com.conwet.wirecloud.ide.category.wizards"
             class="org.eclipse.ui.wizards.datatransfer.ZipFileExportWizard"
             icon="icons/wc2.png"
-            id="com.conwetlab.wirecloud.sdk.wizard.export.wirecloudProject"
+            id="com.conwet.wirecloud.ide.wizard.export.wirecloudProject"
             name="Export Wirecloud Project">
       </wizard>
    </extension>
    <extension
          point="org.eclipse.ui.importWizards">
       <category
-            id="com.conwetlab.wirecloud.sdk.category.wizards"
+            id="com.conwet.wirecloud.ide.category.wizards"
             name="Wirecloud Project">
       </category>
       <wizard
-            category="com.conwetlab.wirecloud.sdk.category.wizards"
+            category="com.conwet.wirecloud.ide.category.wizards"
             class="org.eclipse.ui.wizards.datatransfer.ZipFileImportWizard"
             icon="icons/wc4.png"
-            id="com.conwetlab.wirecloud.sdk.wizard.import.wirecloudProject"
+            id="com.conwet.wirecloud.ide.wizard.import.wirecloudProject"
             name="Import Wirecloud Project">
       </wizard>
    </extension>
@@ -75,23 +75,23 @@
    <extension
          point="org.eclipse.ui.commands">
       <category
-            id="com.conwetlab.wirecloud.sdk.categories.WirecloudDeploymentCategory"
+            id="com.conwet.wirecloud.ide.categories.WirecloudDeploymentCategory"
             name="Wirecloud Deployment">
       </category>
       <command
-            categoryId="com.conwetlab.wirecloud.sdk.categories.WirecloudDeploymentCategory"
-            id="com.conwetlab.wirecloud.sdk.commands.WirecloudDeploymentCommand"
+            categoryId="com.conwet.wirecloud.ide.categories.WirecloudDeploymentCategory"
+            id="com.conwet.wirecloud.ide.commands.WirecloudDeploymentCommand"
             name="Wirecloud Deployment Command">
       </command>
       <command
-            categoryId="com.conwetlab.wirecloud.sdk.categories.WirecloudDeploymentCategory"
-            id="com.conwetlab.wirecloud.sdk.commands.WirecloudRetreatCommand"
+            categoryId="com.conwet.wirecloud.ide.categories.WirecloudDeploymentCategory"
+            id="com.conwet.wirecloud.ide.commands.WirecloudRetreatCommand"
             name="Wirecloud Retreat Command">
       </command>
 
       <command 
-      		categoryId="com.conwetlab.wirecloud.sdk.categories.WirecloudDeploymentCategory"
-      		id="com.conwetlab.wirecloud.sdk.commands.ExplorerWidgetDeploy" 
+      		categoryId="com.conwet.wirecloud.ide.categories.WirecloudDeploymentCategory"
+      		id="com.conwet.wirecloud.ide.commands.ExplorerWidgetDeploy"
       		name="Explorer Widget Deploy Command">
   	  </command>
       
@@ -101,7 +101,7 @@
          point="org.eclipse.wst.server.core.runtimeTypes">
      <runtimeType
        id="org.eclipsewtp.server.wirecloud.runtime.10"
-       class="com.conwet.wirecloud.ApplicationMashupServerRuntime"
+       class="com.conwet.wirecloud.ide.ApplicationMashupServerRuntime"
        description="Wirecloud"
        name="Wirecloud"
        vendor="CoNWeTLab"
@@ -120,8 +120,8 @@
      runtimeTypeId="org.eclipsewtp.server.wirecloud.runtime.10"
      name="Wirecloud"
      description="Wirecloud"
-     class="com.conwet.wirecloud.WirecloudServer"
-     behaviourClass="com.conwet.wirecloud.WirecloudServerBehaviour"
+     class="com.conwet.wirecloud.ide.WirecloudServer"
+     behaviourClass="com.conwet.wirecloud.ide.WirecloudServerBehaviour"
      
      hasConfiguration="false"
      initialState="stopped"
@@ -137,8 +137,8 @@
 	<extension
 		point="org.eclipse.wst.server.core.moduleFactories">
 		<moduleFactory
-		class="com.conwet.wirecloud.WirecloudModuleFactory"
-		id="com.conwet.wirecloud.my.ModuleFactory"
+		class="com.conwet.wirecloud.ide.WirecloudModuleFactory"
+		id="com.conwet.wirecloud.ide.ModuleFactory"
 		projects="true">
 		<moduleType
 			types="com.conwet.applicationmashup.mac"
@@ -185,10 +185,10 @@
     </constraint>
 
 		<action type="INSTALL">
-      		<delegate class="com.conwet.wirecloud.MACFacetInstallDelegate"/>
+      		<delegate class="com.conwet.wirecloud.ide.MACFacetInstallDelegate"/>
     	 </action>
 	  	 <action type="UNINSTALL">
-      		<delegate class="com.conwet.wirecloud.MACFacetUninstallDelegate"/>
+      		<delegate class="com.conwet.wirecloud.ide.MACFacetUninstallDelegate"/>
     	 </action>
 	  </project-facet-version>
 
@@ -205,7 +205,7 @@
   <fragment
      id="org.eclipse.jst.server.generic.server"
      typeIds="org.eclipsewtp.server.wirecloud.server"
-     class="com.conwet.wirecloud.wizards.WirecloudServerCreationWizard"/>
+     class="com.conwet.wirecloud.ide.wizards.WirecloudServerCreationWizard"/>
 </extension>
 <extension
    point="org.eclipse.wst.server.ui.serverImages">

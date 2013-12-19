@@ -19,4 +19,4 @@ Bundle-ClassPath: .,
  libs/slf4j-api-1.7.5.jar,
  libs/json-simple-1.1.1.jar
 Bundle-ActivationPolicy: lazy
-Bundle-Activator: com.conwet.wirecloud.Activator
+Bundle-Activator: com.conwet.wirecloud.ide.Activator
