@@ -238,4 +238,11 @@
                         uri="platform:/plugin/com.conwet.wirecloud.eclipse.plugin/static/mashable_application_component.xsd" />
         </catalogContribution>
 </extension>
+
+<extension point="org.eclipse.wst.jsdt.core.JsGlobalScopeContainerInitializer">
+  <JsGlobalScopeContainerInitializer
+     id="com.conwet.wirecloud.ide.mac_js_library"
+     class="com.conwet.wirecloud.ide.MashableApplicationComponentLibraryInitilizer"/>
+</extension>
+
 </plugin>

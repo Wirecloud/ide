@@ -25,6 +25,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.wst.common.project.facet.core.IDelegate;
 import org.eclipse.wst.common.project.facet.core.IProjectFacetVersion;
+import org.eclipse.wst.jsdt.core.IIncludePathEntry;
+import org.eclipse.wst.jsdt.core.IJavaScriptProject;
+import org.eclipse.wst.jsdt.core.JavaScriptCore;
+import org.eclipse.wst.jsdt.core.JsGlobalScopeContainerInitializer;
 
 public class MACFacetInstallDelegate implements IDelegate {
 
@@ -35,9 +39,23 @@ public class MACFacetInstallDelegate implements IDelegate {
 	throws CoreException
 
 	{
-		monitor.done();
-		WirecloudModuleFactory factory = new WirecloudModuleFactory();
-		factory.createModule(pj);
+		try {
+			WirecloudModuleFactory factory = new WirecloudModuleFactory();
+			factory.createModule(pj);
+			
+			IJavaScriptProject jsProject = JavaScriptCore.create(pj);
+			JsGlobalScopeContainerInitializer container = new MashableApplicationComponentLibraryInitilizer();
+
+			// Add the Mashable Application Component JavaScript Library to the project
+			IIncludePathEntry entry = JavaScriptCore.newContainerEntry(container.getPath());
+			IIncludePathEntry[] ipaths = jsProject.getRawIncludepath();
+			IIncludePathEntry[] newPaths = new IIncludePathEntry[ipaths.length +1];
+			System.arraycopy(ipaths, 0, newPaths, 0, ipaths.length);
+			newPaths[ipaths.length] = entry;
+			jsProject.setRawIncludepath(newPaths, null);
+		} finally {
+			monitor.done();
+		}
 	}
 
 }
