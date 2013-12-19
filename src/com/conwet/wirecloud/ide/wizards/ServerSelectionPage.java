@@ -26,6 +26,8 @@ import java.net.URL;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
@@ -51,6 +53,7 @@ public class ServerSelectionPage extends WizardFragment {
 	private final String DEFAULT_PROTOCOL = "https";
 	private final String DEFAULT_PORT = "443";
 	private final String DEFAULT_PREFIX = "/";
+	private IWizardHandle wizard_handle;
 
 	@Override
 	public boolean hasComposite() {
@@ -94,7 +97,7 @@ public class ServerSelectionPage extends WizardFragment {
 
 		handle.setTitle("Select port and URL prefix");
 		handle.setDescription("Select the port and the URL path prefix of the Wirecloud Server");
-		final IWizardHandle wizard_handle = handle;
+		wizard_handle = handle;
 
 		container = new Composite(parent, SWT.NULL);
 		GridLayout layout = new GridLayout();
@@ -114,11 +117,24 @@ public class ServerSelectionPage extends WizardFragment {
 		label3.setText("Port");
 		//label4.setText("URL prefix");
 
-		protocol = new Combo(container, SWT.BORDER | SWT.SINGLE);
+		protocol = new Combo(container, SWT.BORDER | SWT.SINGLE | SWT.READ_ONLY);
 		protocol.add("http");
 		protocol.add("https");
 		protocol.setText(DEFAULT_PROTOCOL);
+		protocol.addSelectionListener(new SelectionAdapter() {
 
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if ("http".equals(protocol.getText())) {
+					port.setText("80");
+				} else {
+					port.setText("443");
+				}
+				updateCompleteStatus();
+			}
+			 
+		});
+		
 		hostLabel = new Label(container, SWT.NULL);
 
 		port = new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -132,8 +148,7 @@ public class ServerSelectionPage extends WizardFragment {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				setComplete(!port.getText().isEmpty());
-				wizard_handle.update();
+				updateCompleteStatus();
 			}
 
 		});
@@ -166,6 +181,11 @@ public class ServerSelectionPage extends WizardFragment {
 	}
 
 
+
+	protected void updateCompleteStatus() {
+		setComplete(!port.getText().isEmpty());
+		wizard_handle.update();
+	}
 
 	private IServerWorkingCopy getServer() {
 		IServerWorkingCopy server = (IServerWorkingCopy) getTaskModel()
