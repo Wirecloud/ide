@@ -50,9 +50,14 @@ import org.w3c.dom.NodeList;
 
 public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 
-
-
 	protected transient ServerMonitoringThread ping;
+
+	@Override
+	public void dispose() {
+		super.dispose();
+		
+		stopPingThread();
+	}
 
 	@Override
 	protected void initialize(IProgressMonitor monitor) {
@@ -236,10 +241,10 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 		this.setServerState(IServer.STATE_STOPPING);
 	}
 
-	protected void stopPingThread(){
-		if (ping!=null){
+	protected void stopPingThread() {
+		if (ping != null) {
 			ping.stop();
-			ping=null;
+			ping = null;
 		}
 		setServerStopped();
 	}
@@ -253,7 +258,7 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 				server.getAttribute("URLPREFIX", "/"));
 	}
 
-	protected void startPingThread(){
+	protected void startPingThread() {
 		try {
 			if (ping != null) {
 				ping.stop();
