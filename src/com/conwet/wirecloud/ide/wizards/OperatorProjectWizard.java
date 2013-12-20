@@ -32,7 +32,6 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
 import org.eclipse.ui.wizards.newresource.BasicNewProjectResourceWizard;
 
-import com.conwet.wirecloud.ide.natures.OperatorProjectNature;
 import com.conwet.wirecloud.ide.projects.OperatorProjectSupport;
 import com.conwet.wirecloud.ide.projects.ProjectSupport;
 
@@ -78,7 +77,7 @@ public class OperatorProjectWizard extends Wizard implements INewWizard, IExecut
 		
 		ProjectSupport project = new OperatorProjectSupport();
 
-		project.createProject(name, location, OperatorProjectNature.NATURE_ID);
+		project.createProject(name, location);
 		
 		// For launching a specific perspective when it creates the project // 
 		BasicNewProjectResourceWizard.updatePerspective(this.configurationElement);

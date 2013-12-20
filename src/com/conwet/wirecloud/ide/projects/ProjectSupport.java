@@ -54,7 +54,7 @@ import com.conwet.wirecloud.ide.filetemplates.WirecloudFileTemplate;
 public abstract class ProjectSupport {
 
 	
-    public abstract IProject createProject(String projectName, URI location, String nature);
+    public abstract IProject createProject(String projectName, URI location);
 
     /**
      * Just do the basics: create a basic project.

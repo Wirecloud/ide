@@ -73,40 +73,29 @@ MashupPlatform.prefs.set = function set(key, value) {};
 
 /**
  * Registers a callback for listening preference changes.
- * @param {Function}	callback		The callback function that will be called when the preferences of the widget changes.
+ * @param {Function}	callback		The callback function that will be called when the preferences of the operator changes.
  */
 MashupPlatform.prefs.registerCallback = function registerCallback(callback) {};
 
 
 
 /**
- * Widget property.
+ * operator property.
  * @type {Object}
  */
-MashupPlatform.widget = {};
-
-/**
- * Returns a widget variable by its name.
- * @param {String}	name 	The name of the variable to retrieve.
- */
-MashupPlatform.widget.getVariable = function getVariable(name) {};
-
-/**
- * Makes Wirecloud notify that the widget needs user's attention.
- */
-MashupPlatform.widget.drawAttention = function drawAttention() {};
+MashupPlatform.operator = {};
 
 /**
  * Property id
- * Returns the widget id.
+ * Returns the operator id.
  * @readonly
  * @type Object
  */
-MashupPlatform.widget.id = new Object();
+MashupPlatform.operator.id = new Object();
 
 /**
  * Writes a message into the wirecloud's log console.
  * @param {String}	msg		 The text of the message to log.
  * @param {Number}	level	 An optional parameter with the level to uses for logging the message. (By default: info).
  */
-MashupPlatform.widget.log = function log(msg, level) {};
+MashupPlatform.operator.log = function log(msg, level) {};

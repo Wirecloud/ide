@@ -32,10 +32,11 @@ import com.conwet.wirecloud.ide.filetemplates.WidgetCssFileTemplate;
 import com.conwet.wirecloud.ide.filetemplates.WidgetFileTemplate;
 import com.conwet.wirecloud.ide.filetemplates.WidgetHtmlFileTemplate;
 import com.conwet.wirecloud.ide.filetemplates.WirecloudFileTemplate;
+import com.conwet.wirecloud.ide.natures.WidgetProjectNature;
 
 public class WidgetProjectSupport extends ProjectSupport {
-	
-	 /**
+
+	/**
      * For this marvelous project we need to:
      * - create the default Eclipse project
      * - add the custom project nature
@@ -46,7 +47,8 @@ public class WidgetProjectSupport extends ProjectSupport {
      * @param natureId
      * @return
      */
-    public IProject createProject(String projectName, URI location, String nature) {
+	@Override
+    public IProject createProject(String projectName, URI location) {
 
         
         final String IMG_DIR_NAME, IMG_DIR_PATH, CSS_DIR_NAME, CSS_DIR_PATH, JS_DIR_NAME, JS_DIR_PATH, SLASH, HTML_NAME, HTML_PATH,
@@ -79,7 +81,7 @@ public class WidgetProjectSupport extends ProjectSupport {
         IProject project = null;
         try {
         	project = createBaseProject(projectName, location);
-            addNature(project, nature);
+            addNature(project, WidgetProjectNature.NATURE_ID);
 
             String[] paths = {IMG_DIR_PATH, CSS_DIR_PATH, JS_DIR_PATH};
             String[] filePaths = {JS_FILE_PATH, CSS_FILE_PATH, CONFIG_XML_PATH, HTML_PATH,BUILD_XML_PATH};

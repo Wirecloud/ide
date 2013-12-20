@@ -30,9 +30,11 @@ import java.io.FileNotFoundException;
 import com.conwet.wirecloud.ide.filetemplates.OperatorConfigFileTemplate;
 import com.conwet.wirecloud.ide.filetemplates.OperatorFileTemplate;
 import com.conwet.wirecloud.ide.filetemplates.WirecloudFileTemplate;
+import com.conwet.wirecloud.ide.natures.OperatorProjectNature;
 
 
 public class OperatorProjectSupport extends ProjectSupport {
+
 	 /**
      * For this marvelous project we need to:
      * - create the default Eclipse project
@@ -44,7 +46,8 @@ public class OperatorProjectSupport extends ProjectSupport {
      * @param natureId
      * @return
      */
-    public IProject createProject(String projectName, URI location, String nature) {
+	@Override
+    public IProject createProject(String projectName, URI location) {
         
         final String IMG_DIR_NAME, IMG_DIR_PATH, JS_DIR_NAME, JS_DIR_PATH, SLASH, JS_FILE_NAME, JS_FILE_PATH, CONFIG_XML_NAME, CONFIG_XML_PATH;
         
@@ -63,7 +66,7 @@ public class OperatorProjectSupport extends ProjectSupport {
         IProject project = null;
         try {
         	project = createBaseProject(projectName, location);
-            addNature(project, nature);
+            addNature(project, OperatorProjectNature.NATURE_ID);
 
             String[] paths = {IMG_DIR_PATH, JS_DIR_PATH};
             String[] filePaths = {JS_FILE_PATH, CONFIG_XML_PATH};
