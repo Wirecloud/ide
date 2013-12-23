@@ -34,7 +34,7 @@
 
   <xs:element name="Template">
     <xs:complexType>
-      <xs:all>
+      <xs:all minOccurs="1" maxOccurs="1">
         <xs:element name="Catalog.ResourceDescription" minOccurs="1" maxOccurs="1">
           <xs:complexType>
             <xs:all>
@@ -202,7 +202,7 @@
                       </xs:restriction>
                     </xs:simpleType>
                   </xs:attribute>
-                  <xs:attribute name="name" use="required" type="wt:NonEmpty">
+                  <xs:attribute name="name" use="required" type="wt:NameType">
                     <xs:annotation>
                       <xs:documentation>
                         Name that will be used to identify this
@@ -257,7 +257,7 @@
                     </xs:documentation>
                   </xs:annotation>
                   <xs:complexType>
-                    <xs:attribute name="name" use="required" type="wt:NonEmpty">
+                    <xs:attribute name="name" use="required" type="wt:NameType">
                       <xs:annotation>
                         <xs:documentation>
                           Name of the variable.
@@ -278,7 +278,7 @@
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:attribute>
-  
+
                     <xs:attribute name="label" use="required" type="wt:NonEmpty">
                     </xs:attribute>
                   </xs:complexType>
@@ -309,7 +309,7 @@
                       </xs:restriction>
                     </xs:simpleType>
                   </xs:attribute>
-                  <xs:attribute name="name" use="required" type="wt:NonEmpty">
+                  <xs:attribute name="name" use="required" type="wt:NameType">
                     <xs:annotation>
                       <xs:documentation>
                         Name that will be used to identify this
@@ -328,6 +328,15 @@
                   </xs:attribute>
                   <xs:attribute name="description" use="required"
                     type="wt:NonEmpty">
+                    <xs:annotation>
+                       <xs:documentation>
+                         Text describing what is going to happen if an event
+                         arrives this output endpoint. This description is very
+                         important for the wiring process as the user needs
+                         this information for taking decisions on howto wire
+                         widgets/operators.
+                       </xs:documentation>
+                    </xs:annotation>
                   </xs:attribute>
                   <xs:attribute name="friendcode" use="required"
                     type="wt:NonEmpty">
@@ -346,7 +355,7 @@
                       </xs:restriction>
                     </xs:simpleType>
                   </xs:attribute>
-                  <xs:attribute name="name" use="required" type="wt:NonEmpty">
+                  <xs:attribute name="name" use="required" type="wt:NameType">
                     <xs:annotation>
                       <xs:documentation>
                         Name that will be used to identify this
@@ -377,6 +386,15 @@
                   </xs:attribute>
                   <xs:attribute name="description" use="required"
                     type="wt:NonEmpty">
+                    <xs:annotation>
+                       <xs:documentation>
+                         Text describing what is going to happen if an event
+                         arrives this input endpoint. This description is very
+                         important for the wiring process as the user needs
+                         this information for taking decisions on howto wire
+                         widgets/operators.
+                       </xs:documentation>
+                    </xs:annotation>
                   </xs:attribute>
                   <xs:attribute name="friendcode" use="required"
                     type="wt:NonEmpty">
@@ -422,6 +440,15 @@
                         Whether this code can be cached by the
                         platform. Possible values are "true" and "false".
                         Optional attribute, "true" by default.
+                      </xs:documentation>
+                    </xs:annotation>
+                  </xs:attribute>
+                  <xs:attribute name="use-platform-style" type="xs:boolean">
+                    <xs:annotation>
+                      <xs:documentation>
+                        Whether this widget will inherit the style of the platform.
+                        Possible values are "true" and "false". Optional attribute,
+                        "false" by default.
                       </xs:documentation>
                     </xs:annotation>
                   </xs:attribute>
