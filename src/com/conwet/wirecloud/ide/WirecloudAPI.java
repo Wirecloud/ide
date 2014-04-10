@@ -29,6 +29,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.apache.oltu.oauth2.client.OAuthClient;
@@ -267,8 +269,10 @@ public class WirecloudAPI extends WizardFragment {
 	private URL manageURL(URL base, String path, String resource) {
 		URL ret = null;
 		try {
-			ret = new URL(base, path + "/" + resource);
+			ret = new URL(base, new URI(null, null, path + "/" + resource, null, null).toString());
 		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
 		
