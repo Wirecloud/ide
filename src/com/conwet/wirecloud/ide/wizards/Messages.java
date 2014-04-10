@@ -1,6 +1,6 @@
 /*
- *  Copyright (c) 2013 CoNWeT Lab., Universidad Politécnica de Madrid
- *  
+ *  Copyright (c) 2013-2014 CoNWeT Lab., Universidad Politécnica de Madrid
+ *
  *  This file is part of Wirecloud IDE.
  *
  *  Wirecloud IDE is free software: you can redistribute it and/or modify
@@ -26,9 +26,12 @@ public class Messages extends NLS {
 	private static final String BUNDLE_NAME = "com.conwet.wirecloud.ide.wizards.messages"; //$NON-NLS-1$
 	public static String WidgetProjectWizard_Description;
 	public static String WidgetProjectWizard_WidgetProject;
-	
+
 	public static String OperatorProjectWizard_Description;
 	public static String OperatorProjectWizard_OperatorProject;
+
+	public static String EmptyWidgetProjectWizard_Description;
+	public static String EmptyWidgetProjectWizard_EmptyWidgetProject;
 
 	static {
 		// initialize resource bundle

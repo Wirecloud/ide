@@ -24,7 +24,18 @@
             name="Operator Project"
             project="true">
       </wizard>
+
    </extension>
+      <extension
+         id="com.conwet.wirecloud.ide.ExternalWidgetProjectImportNature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="com.conwet.wirecloud.ide.natures.WidgetProjectNature">
+         </run>
+      </runtime>
+   </extension>
+
    <extension
          id="com.conwet.wirecloud.ide.WidgetProjectNature"
          point="org.eclipse.core.resources.natures">
@@ -59,43 +70,19 @@
    </extension>
    <extension
          point="org.eclipse.ui.importWizards">
-      <category
+   <category
             id="com.conwet.wirecloud.ide.category.wizards"
             name="Wirecloud Project">
-      </category>
+   </category>
       <wizard
             category="com.conwet.wirecloud.ide.category.wizards"
-            class="org.eclipse.ui.wizards.datatransfer.ZipFileImportWizard"
+            class="com.conwet.wirecloud.ide.wizards.ExternalWidgetProjectImportWizard"
             icon="icons/wc4.png"
             id="com.conwet.wirecloud.ide.wizard.import.wirecloudProject"
             name="Import Wirecloud Project">
       </wizard>
+
    </extension>
-
-   <extension
-         point="org.eclipse.ui.commands">
-      <category
-            id="com.conwet.wirecloud.ide.categories.WirecloudDeploymentCategory"
-            name="Wirecloud Deployment">
-      </category>
-      <command
-            categoryId="com.conwet.wirecloud.ide.categories.WirecloudDeploymentCategory"
-            id="com.conwet.wirecloud.ide.commands.WirecloudDeploymentCommand"
-            name="Wirecloud Deployment Command">
-      </command>
-      <command
-            categoryId="com.conwet.wirecloud.ide.categories.WirecloudDeploymentCategory"
-            id="com.conwet.wirecloud.ide.commands.WirecloudRetreatCommand"
-            name="Wirecloud Retreat Command">
-      </command>
-
-      <command 
-      		categoryId="com.conwet.wirecloud.ide.categories.WirecloudDeploymentCategory"
-      		id="com.conwet.wirecloud.ide.commands.ExplorerWidgetDeploy"
-      		name="Explorer Widget Deploy Command">
-  	  </command>
-      
-  </extension>    
 
    <extension
          point="org.eclipse.wst.server.core.runtimeTypes">
@@ -122,7 +109,7 @@
      description="Wirecloud"
      class="com.conwet.wirecloud.ide.WirecloudServer"
      behaviourClass="com.conwet.wirecloud.ide.WirecloudServerBehaviour"
-     
+
      hasConfiguration="false"
      initialState="stopped"
      launchConfigId="org.eclipse.jst.server.generic.core
@@ -133,7 +120,7 @@
      stopTimeout="15000"
      supportsRemoteHosts="true"/>
   </extension>
- 
+
 	<extension
 		point="org.eclipse.wst.server.core.moduleFactories">
 		<moduleFactory
@@ -149,21 +136,21 @@
 
 	<extension point="org.eclipse.wst.server.core.moduleTypes">
 		<moduleType
-			id="com.conwet.applicationmashup.mac" 
+			id="com.conwet.applicationmashup.mac"
 			name="Mashable Application Component"/>
 	</extension>
 
-	<extension 
+	<extension
 	  point="org.eclipse.wst.common.project.facet.core.runtimes">
 	  <runtime-component-type id="org.eclipsewtp.server.wirecloud.runtime"/>
 	  <runtime-component-version type="org.eclipsewtp.server.wirecloud.runtime" version="1.0"/>
-	  
+
 	  <supported>
 	    <runtime-component id="org.eclipsewtp.server.wirecloud.runtime" version="1.0"/>
 	    <facet id="com.conwet.applicationmashup.mac" version="1.0"/>
 	  </supported>
-	   
-	
+
+
 	</extension>
 
 <extension point="org.eclipse.jst.server.core.runtimeFacetMappings">

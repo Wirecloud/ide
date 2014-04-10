@@ -84,7 +84,7 @@ public abstract class ProjectSupport {
             }
         	IFacetedProject facetedProject = ProjectFacetsManager.create(newProject, true, null);
 
-            // Install JavaScrit and MAC facets
+            // Install JavaScript and MAC facets
             Set<IProjectFacet> facets = new HashSet<>(facetedProject.getFixedProjectFacets());
 
             IProjectFacet jsFacet = ProjectFacetsManager.getProjectFacet("wst.jsdt.web");
