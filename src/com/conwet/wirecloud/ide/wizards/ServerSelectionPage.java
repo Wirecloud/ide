@@ -1,6 +1,6 @@
 /*
- *  Copyright (c) 2013 CoNWeT Lab., Universidad Politécnica de Madrid
- *  
+ *  Copyright (c) 2013-2014 CoNWeT Lab., Universidad Politécnica de Madrid
+ *
  *  This file is part of Wirecloud IDE.
  *
  *  Wirecloud IDE is free software: you can redistribute it and/or modify
@@ -45,14 +45,14 @@ import com.conwet.wirecloud.ide.WirecloudAPI;
 public class ServerSelectionPage extends WizardFragment {
 
 	private Combo protocol;
-	private Label hostLabel;
+	private Text hostName;
 	private Text port;
-	private Text urlPrefix;
 	private Composite container;
+	private Text wirecloudID;
+	private Text wirecloudSecret;
 
 	private final String DEFAULT_PROTOCOL = "https";
 	private final String DEFAULT_PORT = "443";
-	private final String DEFAULT_PREFIX = "/";
 	private IWizardHandle wizard_handle;
 
 	@Override
@@ -62,7 +62,7 @@ public class ServerSelectionPage extends WizardFragment {
 
 	@Override
 	public void enter() {
-		hostLabel.setText("://" + getServer().getHost() + ":");
+		hostName.setText( getServer().getHost());
 		container.layout();
 	}
 
@@ -71,27 +71,35 @@ public class ServerSelectionPage extends WizardFragment {
 		super.exit();
 
 		if (isComplete()) {
-		
+
 			WirecloudAPI wirecloudAPI = null;
 			try {
-				wirecloudAPI = new WirecloudAPI(getFinalURL());
+				wirecloudAPI = new WirecloudAPI(getFinalURL(),
+						this.wirecloudID.getText(),this.wirecloudSecret.getText());
+
 			} catch (MalformedURLException e1) {
 				e1.printStackTrace();
 			}
 			getTaskModel().putObject("WirecloudAPI", wirecloudAPI);
-			
+
 			getServer().setAttribute("PROTOCOL", this.protocol.getText());
 			getServer().setAttribute("PORT", Integer.parseInt(this.port.getText()));
 			getServer().setAttribute("URLPREFIX", "/" /*this.urlPrefix.getText()*/);
+			getServer().setAttribute("WIRECLOUDID", this.wirecloudID.getText());
+			getServer().setAttribute("WIRECLOUDSECRET",this.wirecloudSecret.getText());
+
 		} else {
 			getTaskModel().putObject("WirecloudAPI", null);
 
 			getServer().setAttribute("PROTOCOL", "");
 			getServer().setAttribute("PORT", "");
-			getServer().setAttribute("URLPREFIX", "");		
+			getServer().setAttribute("URLPREFIX", "");
+			getServer().setAttribute("WIRECLOUDID", "");
+			getServer().setAttribute("WIRECLOUDSECRET","");
+
 		}
 	}
-	
+
 	@Override
 	public Composite createComposite(Composite parent, IWizardHandle handle) {
 
@@ -101,22 +109,10 @@ public class ServerSelectionPage extends WizardFragment {
 
 		container = new Composite(parent, SWT.NULL);
 		GridLayout layout = new GridLayout();
-		GridLayout layout2 = new GridLayout();
-		container.setLayout(layout2);
 		container.setLayout(layout);
 
-		layout.numColumns = 3;
-		layout2.numColumns = 3;
 		Label label1 = new Label(container, SWT.NULL);
-		Label label2 = new Label(container, SWT.NULL);
-		Label label3 = new Label(container, SWT.NULL);
-		//Label label4 = new Label(container, SWT.NULL);
-
 		label1.setText("Protocol");
-		label2.setText("");
-		label3.setText("Port");
-		//label4.setText("URL prefix");
-
 		protocol = new Combo(container, SWT.BORDER | SWT.SINGLE | SWT.READ_ONLY);
 		protocol.add("http");
 		protocol.add("https");
@@ -132,20 +128,59 @@ public class ServerSelectionPage extends WizardFragment {
 				}
 				updateCompleteStatus();
 			}
-			 
-		});
-		
-		hostLabel = new Label(container, SWT.NULL);
 
+		});
+
+		Label label2 = new Label(container, SWT.NULL);
+		label2.setText("Host");
+		hostName = new Text(container, SWT.BORDER | SWT.SINGLE);
+		hostName.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+			}
+			@Override
+			public void keyReleased(KeyEvent e) {
+				updateCompleteStatus();
+			}
+		});
+
+		Label label3 = new Label(container, SWT.NULL);
+		label3.setText("Port");
 		port = new Text(container, SWT.BORDER | SWT.SINGLE);
 		port.setText(DEFAULT_PORT);
 		port.addKeyListener(new KeyListener() {
-
 			@Override
 			public void keyPressed(KeyEvent e) {
+			}
+			@Override
+			public void keyReleased(KeyEvent e) {
+				updateCompleteStatus();
+			}
+		});
 
+		Label label4 = new Label(container, SWT.NULL);
+		label4.setText("WirecloudID: ");
+		wirecloudID = new Text(container, SWT.BORDER | SWT.SINGLE);
+		wirecloudID.setText("");
+		wirecloudID.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+			}
+			@Override
+			public void keyReleased(KeyEvent e) {
+				updateCompleteStatus();
 			}
 
+		});
+
+		Label label5 = new Label(container, SWT.NULL);
+		label5.setText("WirecloudSecret: ");
+		wirecloudSecret = new Text(container, SWT.BORDER | SWT.SINGLE);
+		wirecloudSecret.setText("");
+		wirecloudSecret.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+			}
 			@Override
 			public void keyReleased(KeyEvent e) {
 				updateCompleteStatus();
@@ -156,30 +191,25 @@ public class ServerSelectionPage extends WizardFragment {
 		/*urlPrefix = new Text(container, SWT.BORDER | SWT.SINGLE);
 		urlPrefix.setText(DEFAULT_PREFIX);
 		urlPrefix.addKeyListener(new KeyListener() {
-
-
-
 			@Override
 			public void keyReleased(KeyEvent e) {
 				if (!urlPrefix.getText().isEmpty()) {
 					setComplete(true);
 				}
 			}
-
 			@Override
 			public void keyPressed(KeyEvent arg0) {
-
 			}
-
 		});*/
 
 		GridData gd2 = new GridData(GridData.FILL_HORIZONTAL);
 		port.setLayoutData(gd2);
-
+		wirecloudID.setLayoutData(gd2);
+		wirecloudSecret.setLayoutData(gd2);
+		hostName.setLayoutData(gd2);
 		setComplete(true);
 		return container;
 	}
-
 
 
 	protected void updateCompleteStatus() {
@@ -196,4 +226,5 @@ public class ServerSelectionPage extends WizardFragment {
 	public URL getFinalURL() throws NumberFormatException, MalformedURLException {
 		return new URL(protocol.getText(), getServer().getHost(), Integer.parseInt(port.getText()), "/" /*urlPrefix.getText()*/);
 	}
+
 }

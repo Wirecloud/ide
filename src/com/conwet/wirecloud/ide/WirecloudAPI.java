@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013 CoNWeT Lab., Universidad Politécnica de Madrid
+ *  Copyright (c) 2013-2014 CoNWeT Lab., Universidad Politécnica de Madrid
  *  
  *  This file is part of Wirecloud IDE.
  *
@@ -38,9 +38,10 @@ import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
+import org.eclipse.wst.server.ui.wizard.WizardFragment;
 
 
-public class WirecloudAPI {
+public class WirecloudAPI extends WizardFragment {
 
 	private URL urlToPost;
 	private static final String AUTH_ENDPOINT = "oauth2/auth";
@@ -49,18 +50,22 @@ public class WirecloudAPI {
 	private static final String RESOURCE_ENTRY_PATH = "api/resource";
 	private String token = null;
 	private String mashableComponents = null;
+	private String wirecloudID;
+	private String wirecloudSecret;
 	
 	private static final String UNIVERSAL_REDIRECT_URI_PATH = "oauth2/default_redirect_uri";
 	public URL UNIVERSAL_REDIRECT_URI;
 
-	public WirecloudAPI(String deploymentServer) throws MalformedURLException {
-		this(new URL(deploymentServer));
+	public WirecloudAPI(String deploymentServer,String wirecloudID, String wirecloudSecret) throws MalformedURLException {
+		this(new URL(deploymentServer),wirecloudID,wirecloudSecret);
 	}
 
-	public WirecloudAPI(URL deploymentServer) {
+	public WirecloudAPI(URL deploymentServer, String wirecloudID, String wirecloudSecret) {
 		try {
 			this.urlToPost = new URL(deploymentServer.getProtocol(), deploymentServer.getHost(), deploymentServer.getPort(), deploymentServer.getPath());
 			this.UNIVERSAL_REDIRECT_URI = new URL(deploymentServer, UNIVERSAL_REDIRECT_URI_PATH);
+			this.wirecloudID = wirecloudID;
+			this.wirecloudSecret = wirecloudSecret;
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}
@@ -113,8 +118,8 @@ public class WirecloudAPI {
 	            OAuthClientRequest request = OAuthClientRequest
 	            	.tokenLocation(url.toString())
 	                .setGrantType(GrantType.AUTHORIZATION_CODE)
-	                .setClientId("WirecloudIDE")
-	                .setClientSecret("WirecloudSecret")
+	                .setClientId(this.wirecloudID)
+	                .setClientSecret(this.wirecloudSecret)
 	                .setRedirectURI(redirectURI.toString())
 	                .setCode(code)
 	                .buildBodyMessage();

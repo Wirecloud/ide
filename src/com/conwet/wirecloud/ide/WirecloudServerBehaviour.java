@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013 CoNWeT Lab., Universidad Politécnica de Madrid
+ *  Copyright (c) 2013-2014 CoNWeT Lab., Universidad Politécnica de Madrid
  *  
  *  This file is part of Wirecloud IDE.
  *
@@ -31,7 +31,9 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -94,21 +96,20 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 
 	@Override
 	public IStatus publish(int kind, IProgressMonitor monitor) {
-		return super.publish(kind, monitor);
+		IStatus status = super.publish(kind, monitor);
+		return status;
 	}
 
 	@Override
 	protected IStatus publishModule(int kind, IModule[] module, int deltaKind,
 			IProgressMonitor monitor) {
-	
-		return super.publishModule(kind, module, deltaKind, monitor);
-		
+		IStatus status = super.publishModule(kind, module, deltaKind, monitor);
+		return status;
 	}
 
 	@Override
 	protected void publishModule(int kind, int deltaKind, IModule[] module,
 			IProgressMonitor monitor) throws CoreException {
-
 
 		ArrayList<String> listToRetreat;
 		IServer server = this.getServer();
@@ -116,14 +117,23 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 		Zip zipper = new Zip();
 		WirecloudAPI api=null;
 		IProject project = module[0].getProject();
+
 		try {
-			if(server.getHost().equals("localhost"))
-				api = new WirecloudAPI("http://" + server.getHost() + ":" + server.getAttribute("PORT", 80));
-			else
-				api = new WirecloudAPI(server.getHost());
+			if (server.getHost().equals("localhost")) {
+				api = new WirecloudAPI("http://" + server.getHost() + ":" +
+			server.getAttribute("PORT", 80),server.getAttribute("WIRECLOUDID", ""),
+			server.getAttribute("WIRECLOUDSECRET", ""));
+			} else {
+				api = new WirecloudAPI(server.getHost(),server.getAttribute("WIRECLOUDID", ""),
+						server.getAttribute("WIRECLOUDSECRET", ""));
+            }
 			api.setToken(TOKEN);
 
-			//check deltaKind-> ADD or REMOVE module
+			if (deltaKind != ServerBehaviourDelegate.REMOVED && project.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE) == IMarker.SEVERITY_ERROR) {
+				return;
+			};
+
+			//check deltaKind-> ADD, REMOVE or CHANGED module
 			if (deltaKind==ServerBehaviourDelegate.ADDED) {
 				File newPath = File.createTempFile(project.getName(), ".wgt");
 				zipper.zipFile(project.getLocation().toOSString(), newPath, true);
