@@ -20,6 +20,7 @@
 
 package com.conwet.wirecloud.ide.wizards;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -82,9 +83,13 @@ public class AuthenticationWizardPage extends WizardFragment {
 		final WirecloudAPI API = getWirecloudAPIFromWizardInstance();
 
 		try {
-			browser.setUrl(API.getAuthURL("WirecloudIDE").toString());
+			API.getOAuthEndpoints();
+			browser.setUrl(API.getAuthURL(getServer().getAttribute("WIRECLOUDID", "")).toString());
 		} catch (OAuthSystemException e1) {
 			e1.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		final AuthenticationWizardPage page = this;
@@ -101,11 +106,17 @@ public class AuthenticationWizardPage extends WizardFragment {
 				}
 
 				
-				if (browser.getUrl().startsWith(API.UNIVERSAL_REDIRECT_URI.toString())) {
+				if (browser.getUrl().startsWith(API.UNIVERSAL_REDIRECT_URI)) {
 					QueryParameters parameters = new QueryParameters(
 							currentURL.getQuery());
 					page.code = parameters.getParameter("code");
-					page.token = API.obtainAuthToken(page.code);
+					String clientId = getServer().getAttribute("WIRECLOUDID", "");
+					String clientSecret = getServer().getAttribute("WIRECLOUDSECRET", "");
+					try {
+						page.token = API.obtainAuthToken(page.code, clientId, clientSecret);
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					}
 					page.setComplete(page.token != null);
 					wizard_handle.update();
 					getServer().setAttribute("TOKEN", page.token);

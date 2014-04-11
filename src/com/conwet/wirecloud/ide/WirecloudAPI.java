@@ -33,6 +33,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
@@ -40,35 +44,54 @@ import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.wst.server.ui.wizard.WizardFragment;
 
 
 public class WirecloudAPI extends WizardFragment {
 
 	private URL urlToPost;
-	private static final String AUTH_ENDPOINT = "oauth2/auth";
-	private static final String AUTH_TOKEN = "oauth2/token";
+	private static final String OAUTH_INFO_ENDPOINT = ".well-known/oauth";
+	private static final String DEFAULT_AUTH_ENDPOINT = "oauth2/auth";
+	private static final String DEFAULT_TOKEN_ENDPOINT = "oauth2/token";
+	private static final String DEFAULT_UNIVERSAL_REDIRECT_URI_PATH = "oauth2/default_redirect_uri";
 	private static final String RESOURCE_COLLECTION_PATH = "api/resources";
 	private static final String RESOURCE_ENTRY_PATH = "api/resource";
+
+	private String AUTH_ENDPOINT;
+	private String TOKEN_ENDPOINT;
 	private String token = null;
 	private String mashableComponents = null;
-	private String wirecloudID;
-	private String wirecloudSecret;
 	
-	private static final String UNIVERSAL_REDIRECT_URI_PATH = "oauth2/default_redirect_uri";
-	public URL UNIVERSAL_REDIRECT_URI;
+	public String UNIVERSAL_REDIRECT_URI;
 
-	public WirecloudAPI(String deploymentServer,String wirecloudID, String wirecloudSecret) throws MalformedURLException {
-		this(new URL(deploymentServer),wirecloudID,wirecloudSecret);
+	public WirecloudAPI(String deploymentServer) throws MalformedURLException {
+		this(new URL(deploymentServer));
 	}
 
-	public WirecloudAPI(URL deploymentServer, String wirecloudID, String wirecloudSecret) {
+	public WirecloudAPI(URL deploymentServer) {
 		try {
 			this.urlToPost = new URL(deploymentServer.getProtocol(), deploymentServer.getHost(), deploymentServer.getPort(), deploymentServer.getPath());
-			this.UNIVERSAL_REDIRECT_URI = new URL(deploymentServer, UNIVERSAL_REDIRECT_URI_PATH);
-			this.wirecloudID = wirecloudID;
-			this.wirecloudSecret = wirecloudSecret;
+			this.AUTH_ENDPOINT = DEFAULT_AUTH_ENDPOINT;
+			this.TOKEN_ENDPOINT = DEFAULT_TOKEN_ENDPOINT;
+			this.UNIVERSAL_REDIRECT_URI = new URL(deploymentServer, DEFAULT_UNIVERSAL_REDIRECT_URI_PATH).toString();
 		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void getOAuthEndpoints() throws IOException {
+		WebTarget target = ClientBuilder.newClient().target(this.urlToPost.toString()).path(OAUTH_INFO_ENDPOINT);
+		String response = target.request(MediaType.APPLICATION_JSON).get(String.class);
+		try {
+			JSONObject responseData = new JSONObject(response);
+			this.AUTH_ENDPOINT = responseData.getString("auth_endpoint");
+			this.TOKEN_ENDPOINT = responseData.getString("token_endpoint");
+			this.UNIVERSAL_REDIRECT_URI = responseData.getString("default_redirect_uri");
+			
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -91,8 +114,8 @@ public class WirecloudAPI extends WizardFragment {
 		}
 	} 
 
-	public URL getAuthURL(String clientId, URL redirectURI) throws OAuthSystemException {
-		String url = this.urlToPost.toString() + AUTH_ENDPOINT;
+	public URL getAuthURL(String clientId, String redirectURI) throws OAuthSystemException, MalformedURLException {
+        String url = new URL(this.urlToPost, AUTH_ENDPOINT).toString();
 
         OAuthClientRequest request = OAuthClientRequest
                 .authorizationLocation(url)
@@ -109,19 +132,19 @@ public class WirecloudAPI extends WizardFragment {
         }
 	}
 
-	public URL getAuthURL(String clientId) throws OAuthSystemException {
+	public URL getAuthURL(String clientId) throws OAuthSystemException, MalformedURLException {
         return getAuthURL(clientId, UNIVERSAL_REDIRECT_URI);
 	}
 
-	public String obtainAuthToken(String code, URL redirectURI) {
-		String url = this.urlToPost.toString() + AUTH_TOKEN;
+	public String obtainAuthToken(String code, String clientId, String clientSecret, String redirectURI) throws MalformedURLException {
+		String url = new URL(this.urlToPost, TOKEN_ENDPOINT).toString();
 
 		try {
 	            OAuthClientRequest request = OAuthClientRequest
 	            	.tokenLocation(url.toString())
 	                .setGrantType(GrantType.AUTHORIZATION_CODE)
-	                .setClientId(this.wirecloudID)
-	                .setClientSecret(this.wirecloudSecret)
+	                .setClientId(clientId)
+	                .setClientSecret(clientSecret)
 	                .setRedirectURI(redirectURI.toString())
 	                .setCode(code)
 	                .buildBodyMessage();
@@ -143,8 +166,8 @@ public class WirecloudAPI extends WizardFragment {
 		return null;
 	}
 
-	public String obtainAuthToken(String code) {
-		return obtainAuthToken(code, UNIVERSAL_REDIRECT_URI);
+	public String obtainAuthToken(String code, String clientId, String clientSecret) throws MalformedURLException {
+		return obtainAuthToken(code, clientId, clientSecret, UNIVERSAL_REDIRECT_URI);
 	}
 
 	public String getToken() {

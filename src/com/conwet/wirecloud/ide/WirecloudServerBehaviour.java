@@ -119,14 +119,8 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 		IProject project = module[0].getProject();
 
 		try {
-			if (server.getHost().equals("localhost")) {
-				api = new WirecloudAPI("http://" + server.getHost() + ":" +
-			server.getAttribute("PORT", 80),server.getAttribute("WIRECLOUDID", ""),
-			server.getAttribute("WIRECLOUDSECRET", ""));
-			} else {
-				api = new WirecloudAPI(server.getHost(),server.getAttribute("WIRECLOUDID", ""),
-						server.getAttribute("WIRECLOUDSECRET", ""));
-            }
+			URL url = new URL(server.getAttribute("WIRECLOUDPROTO", "http"), server.getHost(), server.getAttribute("WIRECLOUDPORT",  80), server.getAttribute("URLPREFIX", "/"));
+			api = new WirecloudAPI(url.toString());
 			api.setToken(TOKEN);
 
 			if (deltaKind != ServerBehaviourDelegate.REMOVED && project.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE) == IMarker.SEVERITY_ERROR) {

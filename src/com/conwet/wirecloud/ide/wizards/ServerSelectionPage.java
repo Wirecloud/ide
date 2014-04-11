@@ -74,8 +74,7 @@ public class ServerSelectionPage extends WizardFragment {
 
 			WirecloudAPI wirecloudAPI = null;
 			try {
-				wirecloudAPI = new WirecloudAPI(getFinalURL(),
-						this.wirecloudID.getText(),this.wirecloudSecret.getText());
+				wirecloudAPI = new WirecloudAPI(getFinalURL());
 
 			} catch (MalformedURLException e1) {
 				e1.printStackTrace();
