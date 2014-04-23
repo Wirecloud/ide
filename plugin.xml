@@ -72,14 +72,14 @@
          point="org.eclipse.ui.importWizards">
    <category
             id="com.conwet.wirecloud.ide.category.wizards"
-            name="Wirecloud Project">
+            name="WireCloud">
    </category>
       <wizard
             category="com.conwet.wirecloud.ide.category.wizards"
-            class="com.conwet.wirecloud.ide.wizards.ExternalWidgetProjectImportWizard"
+            class="com.conwet.wirecloud.ide.wizards.MashableApplicationComponentImportWizard"
             icon="icons/wc4.png"
             id="com.conwet.wirecloud.ide.wizard.import.wirecloudProject"
-            name="Import Wirecloud Project">
+            name="Mashable Application Component">
       </wizard>
 
    </extension>
