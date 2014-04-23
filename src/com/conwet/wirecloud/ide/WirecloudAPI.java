@@ -21,12 +21,9 @@
 package com.conwet.wirecloud.ide;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -34,8 +31,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
 
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
@@ -83,7 +80,7 @@ public class WirecloudAPI extends WizardFragment {
 
 	public void getOAuthEndpoints() throws IOException {
 		WebTarget target = ClientBuilder.newClient().target(this.urlToPost.toString()).path(OAUTH_INFO_ENDPOINT);
-		String response = target.request(MediaType.APPLICATION_JSON).get(String.class);
+		String response = target.request().get(String.class);
 		try {
 			JSONObject responseData = new JSONObject(response);
 			this.AUTH_ENDPOINT = responseData.getString("auth_endpoint");
@@ -96,22 +93,11 @@ public class WirecloudAPI extends WizardFragment {
 		}
 	}
 
-	public void deployWGT(String wgtFile, String token) {
-		try {
-			httpConn(new URL(this.urlToPost, RESOURCE_COLLECTION_PATH), new File(wgtFile), token);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-			
-		}
-	} 
-
-	public void deployWGT(File wgtFile, String token) {
-		try {
-			httpConn(new URL(this.urlToPost, RESOURCE_COLLECTION_PATH), wgtFile, token);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-			
-		}
+	public void deployWGT(InputStream wgtFile, String token) {
+		WebTarget target = ClientBuilder.newClient().target(this.urlToPost.toString()).path(RESOURCE_COLLECTION_PATH);
+		String response = target.request()
+				.header("Authorization", "Bearer " + token)
+				.post(Entity.entity(wgtFile, "application/octet-stream"), String.class);
 	} 
 
 	public URL getAuthURL(String clientId, String redirectURI) throws OAuthSystemException, MalformedURLException {
@@ -173,53 +159,7 @@ public class WirecloudAPI extends WizardFragment {
 	public String getToken() {
 		return token;
 	}
-	
-	private void httpConn(URL url, File wgtFile, String token) {
-		try {
-			FileInputStream wgt = new FileInputStream(wgtFile);
-			
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setDoOutput(true);
-			conn.setDoInput(true);
-			conn.setUseCaches(false);
-			// Request Headers
-			conn.setRequestMethod("POST");
-			conn.setRequestProperty("Authorization", "OAuth2" + " " + token);
-			conn.setRequestProperty("Content-Type", "application/octet-stream");
-			conn.setRequestProperty("Content-Length", "" + wgt.available());
-			conn.setRequestProperty("Accept", "application/json");
 
-			OutputStream out = conn.getOutputStream();
-
-			byte[] buffer = new byte[1024];
-			int len = wgt.read(buffer);
-			while (len != -1) {
-			    out.write(buffer, 0, len);
-			    len = wgt.read(buffer);
-			}
-			out.flush();
-			wgt.close();
-			out.close();
-			
-			//Get Response	
-		    InputStream is = conn.getInputStream();
-		    BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-		    String line;
-		    StringBuffer response = new StringBuffer(); 
-		    while((line = rd.readLine()) != null) {
-		      response.append(line);
-		      response.append('\r');
-		    }
-		    rd.close();
-		    //System.out.println(response.toString());
-			
-			//conn.disconnect();	
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}	
-	}
-	
 	private void obtainMashableComponents(){
 		this.mashableComponents = null;
 		try {

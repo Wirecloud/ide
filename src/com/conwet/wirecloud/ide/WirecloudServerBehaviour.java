@@ -21,6 +21,7 @@
 package com.conwet.wirecloud.ide;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -131,7 +132,8 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 			if (deltaKind==ServerBehaviourDelegate.ADDED) {
 				File newPath = File.createTempFile(project.getName(), ".wgt");
 				zipper.zipFile(project.getLocation().toOSString(), newPath, true);
-				api.deployWGT(newPath, TOKEN);
+				FileInputStream wgtFile = new FileInputStream(newPath);
+				api.deployWGT(wgtFile, TOKEN);
 			} else if(deltaKind == ServerBehaviourDelegate.REMOVED || deltaKind == ServerBehaviourDelegate.CHANGED) {
 				listToRetreat=new ArrayList<>();
 				//Dom is used to read the tag's content
@@ -158,7 +160,8 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 				if (deltaKind == ServerBehaviourDelegate.CHANGED) {
 					File newPath = File.createTempFile(project.getName(), ".wgt");
 					zipper.zipFile(project.getLocation().toOSString(), newPath, true);
-					api.deployWGT(newPath, TOKEN);
+					FileInputStream wgtFile = new FileInputStream(newPath);
+					api.deployWGT(wgtFile, TOKEN);
 				}
 				
 			}
