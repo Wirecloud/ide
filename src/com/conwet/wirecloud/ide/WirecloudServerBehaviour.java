@@ -120,8 +120,7 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 		IProject project = module[0].getProject();
 
 		try {
-			URL url = new URL(server.getAttribute("WIRECLOUDPROTO", "http"), server.getHost(), server.getAttribute("WIRECLOUDPORT",  80), server.getAttribute("URLPREFIX", "/"));
-			api = new WirecloudAPI(url.toString());
+			api = new WirecloudAPI(this.getFinalURL().toString());
 			api.setToken(TOKEN);
 
 			if (deltaKind != ServerBehaviourDelegate.REMOVED && project.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE) == IMarker.SEVERITY_ERROR) {
@@ -258,11 +257,16 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 
 	private URL getFinalURL() throws NumberFormatException, MalformedURLException {
 		IServer server = getServer();
-		
-		return new URL(server.getAttribute("PROTOCOL", "http"),
-				server.getHost(),
-				Integer.parseInt(server.getAttribute("PORT", "80")),
-				server.getAttribute("URLPREFIX", "/"));
+
+		int port = Integer.parseInt(server.getAttribute("PORT", "443"));
+		String schema = server.getAttribute("PROTOCOL", "https");
+		String domain = server.getHost();
+
+		if (("https".equals(schema) && port == 443) || ("http".equals(schema) && port == 80)) {
+			return new URL(schema, domain, "/");
+		}
+
+		return new URL(schema, domain, port, "/");
 	}
 
 	protected void startPingThread() {

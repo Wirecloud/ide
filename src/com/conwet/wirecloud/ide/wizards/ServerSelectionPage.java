@@ -44,12 +44,12 @@ import com.conwet.wirecloud.ide.WirecloudAPI;
 
 public class ServerSelectionPage extends WizardFragment {
 
-	private Combo protocol;
-	private Text hostName;
-	private Text port;
+	private Combo protocolInput;
+	private Text hostNameInput;
+	private Text portInput;
 	private Composite container;
-	private Text wirecloudID;
-	private Text wirecloudSecret;
+	private Text wirecloudIDInput;
+	private Text wirecloudSecretInput;
 
 	private final String DEFAULT_PROTOCOL = "https";
 	private final String DEFAULT_PORT = "443";
@@ -62,7 +62,7 @@ public class ServerSelectionPage extends WizardFragment {
 
 	@Override
 	public void enter() {
-		hostName.setText( getServer().getHost());
+		hostNameInput.setText( getServer().getHost());
 		container.layout();
 	}
 
@@ -81,11 +81,12 @@ public class ServerSelectionPage extends WizardFragment {
 			}
 			getTaskModel().putObject("WirecloudAPI", wirecloudAPI);
 
-			getServer().setAttribute("PROTOCOL", this.protocol.getText());
-			getServer().setAttribute("PORT", Integer.parseInt(this.port.getText()));
+			getServer().setHost(hostNameInput.getText());
+			getServer().setAttribute("PROTOCOL", this.protocolInput.getText());
+			getServer().setAttribute("PORT", Integer.parseInt(this.portInput.getText()));
 			getServer().setAttribute("URLPREFIX", "/" /*this.urlPrefix.getText()*/);
-			getServer().setAttribute("WIRECLOUDID", this.wirecloudID.getText());
-			getServer().setAttribute("WIRECLOUDSECRET",this.wirecloudSecret.getText());
+			getServer().setAttribute("WIRECLOUDID", this.wirecloudIDInput.getText());
+			getServer().setAttribute("WIRECLOUDSECRET",this.wirecloudSecretInput.getText());
 
 		} else {
 			getTaskModel().putObject("WirecloudAPI", null);
@@ -112,18 +113,18 @@ public class ServerSelectionPage extends WizardFragment {
 
 		Label label1 = new Label(container, SWT.NULL);
 		label1.setText("Protocol");
-		protocol = new Combo(container, SWT.BORDER | SWT.SINGLE | SWT.READ_ONLY);
-		protocol.add("http");
-		protocol.add("https");
-		protocol.setText(DEFAULT_PROTOCOL);
-		protocol.addSelectionListener(new SelectionAdapter() {
+		protocolInput = new Combo(container, SWT.BORDER | SWT.SINGLE | SWT.READ_ONLY);
+		protocolInput.add("http");
+		protocolInput.add("https");
+		protocolInput.setText(DEFAULT_PROTOCOL);
+		protocolInput.addSelectionListener(new SelectionAdapter() {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if ("http".equals(protocol.getText())) {
-					port.setText("80");
+				if ("http".equals(protocolInput.getText())) {
+					portInput.setText("80");
 				} else {
-					port.setText("443");
+					portInput.setText("443");
 				}
 				updateCompleteStatus();
 			}
@@ -132,8 +133,8 @@ public class ServerSelectionPage extends WizardFragment {
 
 		Label label2 = new Label(container, SWT.NULL);
 		label2.setText("Host");
-		hostName = new Text(container, SWT.BORDER | SWT.SINGLE);
-		hostName.addKeyListener(new KeyListener() {
+		hostNameInput = new Text(container, SWT.BORDER | SWT.SINGLE);
+		hostNameInput.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 			}
@@ -145,9 +146,9 @@ public class ServerSelectionPage extends WizardFragment {
 
 		Label label3 = new Label(container, SWT.NULL);
 		label3.setText("Port");
-		port = new Text(container, SWT.BORDER | SWT.SINGLE);
-		port.setText(DEFAULT_PORT);
-		port.addKeyListener(new KeyListener() {
+		portInput = new Text(container, SWT.BORDER | SWT.SINGLE);
+		portInput.setText(DEFAULT_PORT);
+		portInput.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 			}
@@ -159,9 +160,9 @@ public class ServerSelectionPage extends WizardFragment {
 
 		Label label4 = new Label(container, SWT.NULL);
 		label4.setText("WirecloudID: ");
-		wirecloudID = new Text(container, SWT.BORDER | SWT.SINGLE);
-		wirecloudID.setText("");
-		wirecloudID.addKeyListener(new KeyListener() {
+		wirecloudIDInput = new Text(container, SWT.BORDER | SWT.SINGLE);
+		wirecloudIDInput.setText("");
+		wirecloudIDInput.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 			}
@@ -174,9 +175,9 @@ public class ServerSelectionPage extends WizardFragment {
 
 		Label label5 = new Label(container, SWT.NULL);
 		label5.setText("WirecloudSecret: ");
-		wirecloudSecret = new Text(container, SWT.BORDER | SWT.SINGLE);
-		wirecloudSecret.setText("");
-		wirecloudSecret.addKeyListener(new KeyListener() {
+		wirecloudSecretInput = new Text(container, SWT.BORDER | SWT.SINGLE);
+		wirecloudSecretInput.setText("");
+		wirecloudSecretInput.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 			}
@@ -202,17 +203,17 @@ public class ServerSelectionPage extends WizardFragment {
 		});*/
 
 		GridData gd2 = new GridData(GridData.FILL_HORIZONTAL);
-		port.setLayoutData(gd2);
-		wirecloudID.setLayoutData(gd2);
-		wirecloudSecret.setLayoutData(gd2);
-		hostName.setLayoutData(gd2);
+		portInput.setLayoutData(gd2);
+		wirecloudIDInput.setLayoutData(gd2);
+		wirecloudSecretInput.setLayoutData(gd2);
+		hostNameInput.setLayoutData(gd2);
 		setComplete(true);
 		return container;
 	}
 
 
 	protected void updateCompleteStatus() {
-		setComplete(!port.getText().isEmpty());
+		setComplete(!portInput.getText().isEmpty());
 		wizard_handle.update();
 	}
 
@@ -223,7 +224,15 @@ public class ServerSelectionPage extends WizardFragment {
 	}
 
 	public URL getFinalURL() throws NumberFormatException, MalformedURLException {
-		return new URL(protocol.getText(), getServer().getHost(), Integer.parseInt(port.getText()), "/" /*urlPrefix.getText()*/);
+		int port = Integer.parseInt(portInput.getText());
+		String schema = protocolInput.getText();
+		String domain = hostNameInput.getText();
+
+		if (("https".equals(schema) && port == 443) || ("http".equals(schema) && port == 80)) {
+			return new URL(schema, domain, "/");
+		}
+
+		return new URL(schema, domain, port, "/");
 	}
 
 }
