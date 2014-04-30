@@ -59,7 +59,6 @@ public class WirecloudAPI extends WizardFragment {
 	private String AUTH_ENDPOINT;
 	private String TOKEN_ENDPOINT;
 	private String token = null;
-	private String mashableComponents = null;
 	
 	public String UNIVERSAL_REDIRECT_URI;
 
@@ -97,6 +96,7 @@ public class WirecloudAPI extends WizardFragment {
 		WebTarget target = ClientBuilder.newClient().target(this.urlToPost.toString()).path(RESOURCE_COLLECTION_PATH);
 		String response = target.request()
 				.header("Authorization", "Bearer " + token)
+				.header("Accept", "application/json")
 				.post(Entity.entity(wgtFile, "application/octet-stream"), String.class);
 	} 
 
@@ -160,73 +160,21 @@ public class WirecloudAPI extends WizardFragment {
 		return token;
 	}
 
-	private void obtainMashableComponents(){
-		this.mashableComponents = null;
-		try {
-			URL mashableComponetsURL = new URL(this.urlToPost, RESOURCE_COLLECTION_PATH);
-			HttpURLConnection conn = (HttpURLConnection) mashableComponetsURL.openConnection();
-			conn.setDoInput(true);
-			conn.setUseCaches(false);
-			
-			// Request Headers
-			conn.setRequestMethod("GET");
-			conn.setRequestProperty("Authorization", "OAuth2" + " " + token);
-			conn.setRequestProperty("Accept", "application/json");
-			
-			//Get Response	
-		    InputStream is = conn.getInputStream();
-		    BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-		    String line;
-		    StringBuffer response = new StringBuffer(); 
-		    while((line = rd.readLine()) != null) {
-		      response.append(line);
-		      response.append('\r');
-		    }
-		    rd.close();
-		    mashableComponents = response.toString();
-			
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public String getMashableComponents(){
-		obtainMashableComponents();
-		return mashableComponents;
+	public JSONObject obtainMashableComponents() throws JSONException{
+		WebTarget target = ClientBuilder.newClient().target(this.urlToPost.toString()).path(RESOURCE_COLLECTION_PATH);
+		String response = target.request()
+				.header("Authorization", "Bearer " + token)
+				.header("Accept", "application/json")
+				.get(String.class);
+		return new JSONObject(response);
 	}
 
-	public void deleteCatalogueResource(String resource) {
-		try {
-			URL resourceURL = manageURL(this.urlToPost, RESOURCE_ENTRY_PATH, resource);
-			HttpURLConnection conn = (HttpURLConnection) resourceURL.openConnection();
-			conn.setDoInput(true);
-			conn.setDoOutput(true);
-			conn.setUseCaches(false);
-			
-			// Request Headers
-			conn.setRequestMethod("DELETE");
-			conn.setRequestProperty("Authorization", "OAuth2" + " " + token);
-			conn.setRequestProperty("Accept", "application/json");
-			
-			//Get Response	
-		    InputStream is = conn.getInputStream();
-		    BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-		    String line;
-		    StringBuffer response = new StringBuffer(); 
-		    while((line = rd.readLine()) != null) {
-		      response.append(line);
-		      response.append('\r');
-		    }
-		    rd.close();
-		    //System.out.println(response.toString());
-			
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public void uninstallResource(String resource) {
+		WebTarget target = ClientBuilder.newClient().target(this.urlToPost.toString()).path(RESOURCE_ENTRY_PATH).path(resource);
+		String response = target.request()
+				.header("Authorization", "Bearer " + token)
+				.header("Accept", "application/json")
+				.delete(String.class);
 	}
 	
 	private URL manageURL(URL base, String path, String resource) {

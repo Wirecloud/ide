@@ -154,7 +154,7 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 				}
 				Iterator<String> resourcesToDeleteIterator = listToRetreat.iterator();
 				while (resourcesToDeleteIterator.hasNext()) {
-					api.deleteCatalogueResource(resourcesToDeleteIterator.next());
+					api.uninstallResource(resourcesToDeleteIterator.next());
 				}
 				if (deltaKind == ServerBehaviourDelegate.CHANGED) {
 					File newPath = File.createTempFile(project.getName(), ".wgt");
