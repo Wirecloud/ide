@@ -62,7 +62,8 @@ public class ServerSelectionPage extends WizardFragment {
 
 	@Override
 	public void enter() {
-		hostNameInput.setText( getServer().getHost());
+		hostNameInput.setText(getServer().getHost());
+		updateCompleteStatus();
 		container.layout();
 	}
 
@@ -207,13 +208,18 @@ public class ServerSelectionPage extends WizardFragment {
 		wirecloudIDInput.setLayoutData(gd2);
 		wirecloudSecretInput.setLayoutData(gd2);
 		hostNameInput.setLayoutData(gd2);
-		setComplete(true);
+		setComplete(false);
+
 		return container;
 	}
 
 
 	protected void updateCompleteStatus() {
-		setComplete(!portInput.getText().isEmpty());
+		setComplete(
+				!hostNameInput.getText().isEmpty() &&
+				!portInput.getText().isEmpty() &&
+				!wirecloudIDInput.getText().isEmpty() &&
+				!wirecloudSecretInput.getText().isEmpty());
 		wizard_handle.update();
 	}
 
