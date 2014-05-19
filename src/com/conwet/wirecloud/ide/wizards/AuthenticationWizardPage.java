@@ -82,66 +82,77 @@ public class AuthenticationWizardPage extends WizardFragment {
 	}
 
 	@Override
-	public void enter() {
+    public void enter() {
 
-		final WirecloudAPI API = getWirecloudAPIFromWizardInstance();
+        boolean auth_info_available = false;
+        final WirecloudAPI API = getWirecloudAPIFromWizardInstance();
 
-		try {
-			API.getOAuthEndpoints();
-			browser.setUrl(API.getAuthURL(getServer().getAttribute("WIRECLOUDID", "")).toString());
-			handle.setMessage("", IMessageProvider.NONE);
-		} catch (WebApplicationException e) {
-			handle.setMessage("Error connecting to the WireCloud Server", IMessageProvider.ERROR);
-			browser.setUrl("about:blank");
-		} catch (ProcessingException e) {
-			handle.setMessage("Error connecting to the WireCloud Server", IMessageProvider.ERROR);
-			browser.setUrl("about:blank");
-		} catch (OAuthSystemException e1) {
-			e1.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        Browser.clearSessions();
 
-		final AuthenticationWizardPage page = this;
-		final IWizardHandle wizard_handle = handle;
-		locationListener = new LocationListener() {
-			public void changed(LocationEvent event) {
-				Browser browser = (Browser) event.widget;
-				URL currentURL;
-				try {
-					currentURL = new URL(browser.getUrl());
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-					return;
-				}
+        try {
+            API.getOAuthEndpoints();
+            auth_info_available = true;
+        } catch (Exception e) {
+            e.printStackTrace();
 
-				
-				if (browser.getUrl().startsWith(API.UNIVERSAL_REDIRECT_URI)) {
-					QueryParameters parameters = new QueryParameters(
-							currentURL.getQuery());
-					page.code = parameters.getParameter("code");
-					String clientId = getServer().getAttribute("WIRECLOUDID", "");
-					String clientSecret = getServer().getAttribute("WIRECLOUDSECRET", "");
-					try {
-						page.token = API.obtainAuthToken(page.code, clientId, clientSecret);
-					} catch (MalformedURLException e) {
-						e.printStackTrace();
-					}
-					page.setComplete(page.token != null);
-					wizard_handle.update();
-					getServer().setAttribute("TOKEN", page.token);
-				}
-			}
+            handle.setMessage("Error querying basic info to the WireCloud Server. Are you sure there is a WireCloud server running at \"" + API.url + "\" ?", IMessageProvider.ERROR);
+            browser.setUrl("about:blank");
+        }
 
-			public void changing(LocationEvent event) {
-			}
-		};
-		browser.addLocationListener(locationListener);
+        URL url = null;
+        try {
+            if (auth_info_available) {
+                url = API.getAuthURL(getServer().getAttribute("WIRECLOUDID", ""));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
 
-		this.handle.update();
-		super.enter();
-	}
+            handle.setMessage("Error opening the OAuth2 workflow for authentication. Are you sure the provided authentication parameters (client id and client secret) are valid?", IMessageProvider.ERROR);
+            browser.setUrl("about:blank");
+        }
+
+        if (url != null) {
+            browser.setUrl(url.toString());
+            handle.setMessage("", IMessageProvider.NONE);
+        }
+
+        final AuthenticationWizardPage page = this;
+        final IWizardHandle wizard_handle = handle;
+        locationListener = new LocationListener() {
+            public void changed(LocationEvent event) {
+                Browser browser = (Browser) event.widget;
+                URL currentURL;
+                try {
+                    currentURL = new URL(browser.getUrl());
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                    return;
+                }
+
+                if (browser.getUrl().startsWith(API.UNIVERSAL_REDIRECT_URI)) {
+                    QueryParameters parameters = new QueryParameters(currentURL.getQuery());
+                    page.code = parameters.getParameter("code");
+                    String clientId = getServer().getAttribute("WIRECLOUDID", "");
+                    String clientSecret = getServer().getAttribute("WIRECLOUDSECRET", "");
+                    try {
+                        page.token = API.obtainAuthToken(page.code, clientId, clientSecret);
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    }
+                    page.setComplete(page.token != null);
+                    wizard_handle.update();
+                    getServer().setAttribute("TOKEN", page.token);
+                }
+            }
+
+            public void changing(LocationEvent event) {
+            }
+        };
+        browser.addLocationListener(locationListener);
+
+        this.handle.update();
+        super.enter();
+    }
 
 	@Override
 	public void exit() {

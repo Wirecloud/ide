@@ -20,11 +20,8 @@
 
 package com.conwet.wirecloud.ide;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -48,7 +45,7 @@ import org.eclipse.wst.server.ui.wizard.WizardFragment;
 
 public class WirecloudAPI extends WizardFragment {
 
-	private URL urlToPost;
+	public final URL url;
 	private static final String OAUTH_INFO_ENDPOINT = ".well-known/oauth";
 	private static final String DEFAULT_AUTH_ENDPOINT = "oauth2/auth";
 	private static final String DEFAULT_TOKEN_ENDPOINT = "oauth2/token";
@@ -66,19 +63,26 @@ public class WirecloudAPI extends WizardFragment {
 		this(new URL(deploymentServer));
 	}
 
-	public WirecloudAPI(URL deploymentServer) {
-		try {
-			this.urlToPost = new URL(deploymentServer.getProtocol(), deploymentServer.getHost(), deploymentServer.getPort(), deploymentServer.getPath());
-			this.AUTH_ENDPOINT = DEFAULT_AUTH_ENDPOINT;
-			this.TOKEN_ENDPOINT = DEFAULT_TOKEN_ENDPOINT;
-			this.UNIVERSAL_REDIRECT_URI = new URL(deploymentServer, DEFAULT_UNIVERSAL_REDIRECT_URI_PATH).toString();
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
-	}
+    public WirecloudAPI(URL deploymentServer) {
+        try {
+            deploymentServer = new URL(deploymentServer.getProtocol(), deploymentServer.getHost(), deploymentServer.getPort(), deploymentServer.getPath());
+        } catch (Exception e) {
+            // Should not happen as the URL is build from a valid URL
+            e.printStackTrace();
+        }
+        this.url = deploymentServer;
+        this.AUTH_ENDPOINT = DEFAULT_AUTH_ENDPOINT;
+        this.TOKEN_ENDPOINT = DEFAULT_TOKEN_ENDPOINT;
+        try {
+            this.UNIVERSAL_REDIRECT_URI = new URL(deploymentServer, DEFAULT_UNIVERSAL_REDIRECT_URI_PATH).toString();
+        } catch (MalformedURLException e) {
+            // Should not happen as the URL is build from a valid URL using a constant
+            e.printStackTrace();
+        }
+    }
 
 	public void getOAuthEndpoints() throws IOException {
-		WebTarget target = ClientBuilder.newClient().target(this.urlToPost.toString()).path(OAUTH_INFO_ENDPOINT);
+		WebTarget target = ClientBuilder.newClient().target(this.url.toString()).path(OAUTH_INFO_ENDPOINT);
 		String response = target.request().get(String.class);
 		try {
 			JSONObject responseData = new JSONObject(response);
@@ -93,7 +97,7 @@ public class WirecloudAPI extends WizardFragment {
 	}
 
 	public void deployWGT(InputStream wgtFile, String token) {
-		WebTarget target = ClientBuilder.newClient().target(this.urlToPost.toString()).path(RESOURCE_COLLECTION_PATH);
+		WebTarget target = ClientBuilder.newClient().target(this.url.toString()).path(RESOURCE_COLLECTION_PATH);
 		String response = target.request()
 				.header("Authorization", "Bearer " + token)
 				.header("Accept", "application/json")
@@ -101,7 +105,7 @@ public class WirecloudAPI extends WizardFragment {
 	} 
 
 	public URL getAuthURL(String clientId, String redirectURI) throws OAuthSystemException, MalformedURLException {
-        String url = new URL(this.urlToPost, AUTH_ENDPOINT).toString();
+        String url = new URL(this.url, AUTH_ENDPOINT).toString();
 
         OAuthClientRequest request = OAuthClientRequest
                 .authorizationLocation(url)
@@ -111,10 +115,10 @@ public class WirecloudAPI extends WizardFragment {
                 .buildQueryMessage();
 
         try {
-        	return new URL(request.getLocationUri());
+            return new URL(request.getLocationUri());
         } catch (MalformedURLException e) {
-        	e.printStackTrace();
-        	return null;
+            e.printStackTrace();
+            return null;
         }
 	}
 
@@ -123,11 +127,11 @@ public class WirecloudAPI extends WizardFragment {
 	}
 
 	public String obtainAuthToken(String code, String clientId, String clientSecret, String redirectURI) throws MalformedURLException {
-		String url = new URL(this.urlToPost, TOKEN_ENDPOINT).toString();
+		String url = new URL(this.url, TOKEN_ENDPOINT).toString();
 
 		try {
 	            OAuthClientRequest request = OAuthClientRequest
-	            	.tokenLocation(url.toString())
+	                .tokenLocation(url.toString())
 	                .setGrantType(GrantType.AUTHORIZATION_CODE)
 	                .setClientId(clientId)
 	                .setClientSecret(clientSecret)
@@ -161,7 +165,7 @@ public class WirecloudAPI extends WizardFragment {
 	}
 
 	public JSONObject obtainMashableComponents() throws JSONException{
-		WebTarget target = ClientBuilder.newClient().target(this.urlToPost.toString()).path(RESOURCE_COLLECTION_PATH);
+		WebTarget target = ClientBuilder.newClient().target(this.url.toString()).path(RESOURCE_COLLECTION_PATH);
 		String response = target.request()
 				.header("Authorization", "Bearer " + token)
 				.header("Accept", "application/json")
@@ -170,7 +174,7 @@ public class WirecloudAPI extends WizardFragment {
 	}
 
 	public void uninstallResource(String resource) {
-		WebTarget target = ClientBuilder.newClient().target(this.urlToPost.toString()).path(RESOURCE_ENTRY_PATH).path(resource);
+		WebTarget target = ClientBuilder.newClient().target(this.url.toString()).path(RESOURCE_ENTRY_PATH).path(resource);
 		String response = target.request()
 				.header("Authorization", "Bearer " + token)
 				.header("Accept", "application/json")
