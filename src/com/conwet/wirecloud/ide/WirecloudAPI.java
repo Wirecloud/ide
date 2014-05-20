@@ -20,27 +20,38 @@
 
 package com.conwet.wirecloud.ide;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-
+import org.apache.http.HttpHost;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.FileEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.apache.http.util.EntityUtils;
 import org.apache.oltu.oauth2.client.OAuthClient;
-import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
 import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
+import org.apache.oltu.oauth2.httpclient4.HttpClient4;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.core.net.proxy.IProxyData;
+import org.eclipse.core.net.proxy.IProxyService;
 import org.eclipse.wst.server.ui.wizard.WizardFragment;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.util.tracker.ServiceTracker;
 
 
 public class WirecloudAPI extends WizardFragment {
@@ -58,6 +69,7 @@ public class WirecloudAPI extends WizardFragment {
 	private String token = null;
 	
 	public String UNIVERSAL_REDIRECT_URI;
+    private ServiceTracker proxyTracker;
 
 	public WirecloudAPI(String deploymentServer) throws MalformedURLException {
 		this(new URL(deploymentServer));
@@ -79,30 +91,100 @@ public class WirecloudAPI extends WizardFragment {
             // Should not happen as the URL is build from a valid URL using a constant
             e.printStackTrace();
         }
+        
+        proxyTracker = new ServiceTracker(FrameworkUtil.getBundle(
+                this.getClass()).getBundleContext(), IProxyService.class
+                .getName(), null);
+        proxyTracker.open();
     }
 
-	public void getOAuthEndpoints() throws IOException {
-		WebTarget target = ClientBuilder.newClient().target(this.url.toString()).path(OAUTH_INFO_ENDPOINT);
-		String response = target.request().get(String.class);
-		try {
-			JSONObject responseData = new JSONObject(response);
-			this.AUTH_ENDPOINT = responseData.getString("auth_endpoint");
-			this.TOKEN_ENDPOINT = responseData.getString("token_endpoint");
-			this.UNIVERSAL_REDIRECT_URI = responseData.getString("default_redirect_uri");
-			
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+    public IProxyService getProxyService() {
+        return (IProxyService) proxyTracker.getService();
+    }
 
-	public void deployWGT(InputStream wgtFile, String token) {
-		WebTarget target = ClientBuilder.newClient().target(this.url.toString()).path(RESOURCE_COLLECTION_PATH);
-		String response = target.request()
-				.header("Authorization", "Bearer " + token)
-				.header("Accept", "application/json")
-				.post(Entity.entity(wgtFile, "application/octet-stream"), String.class);
-	} 
+    private CloseableHttpClient createHttpClient(URL url) {
+        HttpClientBuilder hcBuilder = HttpClients.custom();
+
+        IProxyService proxyService = getProxyService();
+        IProxyData[] proxyDataForHost;
+        try {
+            proxyDataForHost = proxyService.select(url.toURI());
+        } catch (URISyntaxException e) {
+            throw new AssertionError(e);
+        }
+        for (IProxyData iProxyData : proxyDataForHost) {
+            HttpHost proxy = new HttpHost(iProxyData.getHost(), iProxyData.getPort(), iProxyData.getType());
+            DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+            hcBuilder.setRoutePlanner(routePlanner);
+        }
+
+        return hcBuilder.build();
+    }
+
+    public void getOAuthEndpoints() throws IOException, UnexpectedResponse {
+        URL url;
+        try {
+            url = new URL(this.url, OAUTH_INFO_ENDPOINT);
+        } catch (MalformedURLException e) {
+            throw new AssertionError(e);
+        }
+        HttpGet request = new HttpGet(url.toString());
+
+        CloseableHttpClient httpclient = null;
+        CloseableHttpResponse response = null;
+        try {
+            httpclient = createHttpClient(url);
+            response = httpclient.execute(request);
+
+            if (response.getStatusLine().getStatusCode() != 200) {
+                throw new UnexpectedResponse();
+            }
+
+            try {
+                JSONObject responseData = new JSONObject(EntityUtils.toString(response.getEntity()));
+                this.AUTH_ENDPOINT = responseData.getString("auth_endpoint");
+                this.TOKEN_ENDPOINT = responseData.getString("token_endpoint");
+                this.UNIVERSAL_REDIRECT_URI = responseData.getString("default_redirect_uri");
+            } catch (JSONException e) {
+                throw new UnexpectedResponse();
+            }
+        } finally {
+            httpclient.close();
+            if (response != null) {
+                response.close();
+            }
+        }
+    }
+
+    public void deployWGT(File wgtFile, String token) throws IOException, UnexpectedResponse {
+        URL url;
+        try {
+            url = new URL(this.url, RESOURCE_COLLECTION_PATH);
+        } catch (MalformedURLException e) {
+            throw new AssertionError(e);
+        }
+        HttpPost request = new HttpPost(url.toString());
+        request.setHeader("Authorization", "Bearer " + token);
+        request.setHeader("Accept", "application/json");
+        request.setHeader("Content-Type", "application/octet-stream");
+        request.setEntity(new FileEntity(wgtFile));
+
+        CloseableHttpClient httpclient = null;
+        CloseableHttpResponse response = null;
+        try {
+            httpclient = createHttpClient(url);
+            response = httpclient.execute(request);
+
+            if (response.getStatusLine().getStatusCode() != 201) {
+                throw new UnexpectedResponse();
+            }
+        } finally {
+            httpclient.close();
+            if (response != null) {
+                response.close();
+            }
+        }
+    }
 
 	public URL getAuthURL(String clientId, String redirectURI) throws OAuthSystemException, MalformedURLException {
         String url = new URL(this.url, AUTH_ENDPOINT).toString();
@@ -139,7 +221,7 @@ public class WirecloudAPI extends WizardFragment {
 	                .setCode(code)
 	                .buildBodyMessage();
 
-	            OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+	            OAuthClient oAuthClient = new OAuthClient(new HttpClient4(createHttpClient(new URL(request.getLocationUri()))));
 
 	            OAuthJSONAccessTokenResponse oAuthResponse = oAuthClient.accessToken(request, OAuthJSONAccessTokenResponse.class);
 
@@ -164,35 +246,73 @@ public class WirecloudAPI extends WizardFragment {
 		return token;
 	}
 
-	public JSONObject obtainMashableComponents() throws JSONException{
-		WebTarget target = ClientBuilder.newClient().target(this.url.toString()).path(RESOURCE_COLLECTION_PATH);
-		String response = target.request()
-				.header("Authorization", "Bearer " + token)
-				.header("Accept", "application/json")
-				.get(String.class);
-		return new JSONObject(response);
-	}
+    public JSONObject obtainMashableComponents() throws IOException, UnexpectedResponse {
+        URL url;
+        try {
+            url = new URL(this.url, OAUTH_INFO_ENDPOINT);
+        } catch (MalformedURLException e) {
+            throw new AssertionError(e);
+        }
+        HttpGet request = new HttpGet(url.toString());
+        CloseableHttpClient httpclient = null;
+        CloseableHttpResponse response = null;
+        try {
+            httpclient = createHttpClient(url);
+            request.setHeader("Authorization", "Bearer " + token);
+            request.setHeader("Accept", "application/json");
+            response = httpclient.execute(request);
 
-	public void uninstallResource(String resource) {
-		WebTarget target = ClientBuilder.newClient().target(this.url.toString()).path(RESOURCE_ENTRY_PATH).path(resource);
-		String response = target.request()
-				.header("Authorization", "Bearer " + token)
-				.header("Accept", "application/json")
-				.delete(String.class);
-	}
-	
-	private URL manageURL(URL base, String path, String resource) {
-		URL ret = null;
-		try {
-			ret = new URL(base, new URI(null, null, path + "/" + resource, null, null).toString());
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-		
-		return ret;
-	}
+            if (response.getStatusLine().getStatusCode() != 200) {
+                throw new UnexpectedResponse();
+            }
+
+            try {
+                return new JSONObject(EntityUtils.toString(response.getEntity()));
+            } catch (JSONException e) {
+                throw new UnexpectedResponse();
+            }
+        } finally {
+            httpclient.close();
+            if (response != null) {
+                response.close();
+            }
+        }
+    }
+
+    public void uninstallResource(String resource) throws IOException, UnexpectedResponse {
+        URL url = manageURL(this.url, RESOURCE_ENTRY_PATH, resource);
+        HttpDelete request = new HttpDelete(url.toString());
+        CloseableHttpClient httpclient = null;
+        CloseableHttpResponse response = null;
+        try {
+            httpclient = createHttpClient(url);
+            request.setHeader("Authorization", "Bearer " + token);
+            request.setHeader("Accept", "application/json");
+            response = httpclient.execute(request);
+
+            if (response.getStatusLine().getStatusCode() != 204) {
+                throw new UnexpectedResponse();
+            }
+        } finally {
+            httpclient.close();
+            if (response != null) {
+                response.close();
+            }
+        }
+    }
+
+    private URL manageURL(URL base, String path, String resource) {
+        URL ret = null;
+        try {
+            ret = new URL(base, new URI(null, null, path + "/" + resource, null, null).toString());
+        } catch (MalformedURLException e) {
+            throw new AssertionError(e);
+        } catch (URISyntaxException e) {
+            throw new AssertionError(e);
+        }
+
+        return ret;
+    }
 
 	public void setToken(String TOKEN) {
 		this.token = TOKEN;

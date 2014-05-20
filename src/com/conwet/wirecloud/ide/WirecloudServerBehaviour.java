@@ -129,9 +129,8 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 
 			//check deltaKind-> ADD, REMOVE or CHANGED module
 			if (deltaKind==ServerBehaviourDelegate.ADDED) {
-				File newPath = File.createTempFile(project.getName(), ".wgt");
-				zipper.zipFile(project.getLocation().toOSString(), newPath, true);
-				FileInputStream wgtFile = new FileInputStream(newPath);
+				File wgtFile = File.createTempFile(project.getName(), ".wgt");
+				zipper.zipFile(project.getLocation().toOSString(), wgtFile, true);
 				api.deployWGT(wgtFile, TOKEN);
 			} else if(deltaKind == ServerBehaviourDelegate.REMOVED || deltaKind == ServerBehaviourDelegate.CHANGED) {
 				listToRetreat=new ArrayList<>();
@@ -157,9 +156,8 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 					api.uninstallResource(resourcesToDeleteIterator.next());
 				}
 				if (deltaKind == ServerBehaviourDelegate.CHANGED) {
-					File newPath = File.createTempFile(project.getName(), ".wgt");
-					zipper.zipFile(project.getLocation().toOSString(), newPath, true);
-					FileInputStream wgtFile = new FileInputStream(newPath);
+					File wgtFile = File.createTempFile(project.getName(), ".wgt");
+					zipper.zipFile(project.getLocation().toOSString(), wgtFile, true);
 					api.deployWGT(wgtFile, TOKEN);
 				}
 				

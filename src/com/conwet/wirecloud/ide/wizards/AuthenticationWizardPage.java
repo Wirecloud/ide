@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013 CoNWeT Lab., Universidad Politécnica de Madrid
+ *  Copyright (c) 2013-2014 CoNWeT Lab., Universidad Politécnica de Madrid
  *  
  *  This file is part of Wirecloud IDE.
  *
@@ -20,14 +20,9 @@
 
 package com.conwet.wirecloud.ide.wizards;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.WebApplicationException;
-
-import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
