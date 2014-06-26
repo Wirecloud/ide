@@ -90,7 +90,6 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 	@Override
 	public void publish(int kind, List<IModule[]> modules,
 			IProgressMonitor monitor, IAdaptable info) throws CoreException {
-		// modules null
 		super.publish(kind, modules, monitor, info);
 	}
 

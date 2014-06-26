@@ -1,6 +1,6 @@
 /*
  *  Copyright (c) 2014 CoNWeT Lab., Universidad Politécnica de Madrid
- *  
+ *
  *  This file is part of Wirecloud IDE.
  *
  *  Wirecloud IDE is free software: you can redistribute it and/or modify
@@ -19,11 +19,26 @@
  */
 package com.conwet.wirecloud.ide;
 
-public class UnexpectedResponse extends Exception {
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -2961067915209235736L;
+public class FailureResponseException extends Exception {
+
+	public final String details;
+
+	public FailureResponseException(String message, String details) {
+        super(message);
+        this.details = details;
+	}
+
+	public static FailureResponseException createFailureException(String responseContent) throws JSONException {
+		JSONObject responseData = new JSONObject(responseContent);
+        return new FailureResponseException(responseData.getString("description"), responseData.getString("details"));
+	}
+
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 4536655928392093474L;
 
 }

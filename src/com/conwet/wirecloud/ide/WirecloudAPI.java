@@ -53,31 +53,32 @@ import org.eclipse.wst.server.ui.wizard.WizardFragment;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
 
-
 public class WirecloudAPI extends WizardFragment {
 
-	public final URL url;
-	private static final String OAUTH_INFO_ENDPOINT = ".well-known/oauth";
-	private static final String DEFAULT_AUTH_ENDPOINT = "oauth2/auth";
-	private static final String DEFAULT_TOKEN_ENDPOINT = "oauth2/token";
-	private static final String DEFAULT_UNIVERSAL_REDIRECT_URI_PATH = "oauth2/default_redirect_uri";
-	private static final String RESOURCE_COLLECTION_PATH = "api/resources";
-	private static final String RESOURCE_ENTRY_PATH = "api/resource";
+    public final URL url;
+    private static final String OAUTH_INFO_ENDPOINT = ".well-known/oauth";
+    private static final String DEFAULT_AUTH_ENDPOINT = "oauth2/auth";
+    private static final String DEFAULT_TOKEN_ENDPOINT = "oauth2/token";
+    private static final String DEFAULT_UNIVERSAL_REDIRECT_URI_PATH = "oauth2/default_redirect_uri";
+    private static final String RESOURCE_COLLECTION_PATH = "api/resources";
+    private static final String RESOURCE_ENTRY_PATH = "api/resource";
 
-	private String AUTH_ENDPOINT;
-	private String TOKEN_ENDPOINT;
-	private String token = null;
-	
-	public String UNIVERSAL_REDIRECT_URI;
-    private ServiceTracker proxyTracker;
+    protected String AUTH_ENDPOINT;
+    protected String TOKEN_ENDPOINT;
+    private String token = null;
 
-	public WirecloudAPI(String deploymentServer) throws MalformedURLException {
-		this(new URL(deploymentServer));
-	}
+    public String UNIVERSAL_REDIRECT_URI;
+    private ServiceTracker proxyTracker = null;
+
+    public WirecloudAPI(String deploymentServer) throws MalformedURLException {
+        this(new URL(deploymentServer));
+    }
 
     public WirecloudAPI(URL deploymentServer) {
         try {
-            deploymentServer = new URL(deploymentServer.getProtocol(), deploymentServer.getHost(), deploymentServer.getPort(), deploymentServer.getPath());
+            deploymentServer = new URL(deploymentServer.getProtocol(),
+                    deploymentServer.getHost(), deploymentServer.getPort(),
+                    deploymentServer.getPath());
         } catch (Exception e) {
             // Should not happen as the URL is build from a valid URL
             e.printStackTrace();
@@ -86,23 +87,26 @@ public class WirecloudAPI extends WizardFragment {
         this.AUTH_ENDPOINT = DEFAULT_AUTH_ENDPOINT;
         this.TOKEN_ENDPOINT = DEFAULT_TOKEN_ENDPOINT;
         try {
-            this.UNIVERSAL_REDIRECT_URI = new URL(deploymentServer, DEFAULT_UNIVERSAL_REDIRECT_URI_PATH).toString();
+            this.UNIVERSAL_REDIRECT_URI = new URL(deploymentServer,
+                    DEFAULT_UNIVERSAL_REDIRECT_URI_PATH).toString();
         } catch (MalformedURLException e) {
-            // Should not happen as the URL is build from a valid URL using a constant
+            // Should not happen as the URL is build from a valid URL using a
+            // constant
             e.printStackTrace();
         }
-        
-        proxyTracker = new ServiceTracker(FrameworkUtil.getBundle(
-                this.getClass()).getBundleContext(), IProxyService.class
-                .getName(), null);
-        proxyTracker.open();
     }
 
     public IProxyService getProxyService() {
+        if (proxyTracker == null) {
+            proxyTracker = new ServiceTracker(FrameworkUtil.getBundle(
+                    this.getClass()).getBundleContext(),
+                    IProxyService.class.getName(), null);
+            proxyTracker.open();
+        }
         return (IProxyService) proxyTracker.getService();
     }
 
-    private CloseableHttpClient createHttpClient(URL url) {
+    protected CloseableHttpClient createHttpClient(URL url) {
         HttpClientBuilder hcBuilder = HttpClients.custom();
 
         IProxyService proxyService = getProxyService();
@@ -113,15 +117,18 @@ public class WirecloudAPI extends WizardFragment {
             throw new AssertionError(e);
         }
         for (IProxyData iProxyData : proxyDataForHost) {
-            HttpHost proxy = new HttpHost(iProxyData.getHost(), iProxyData.getPort(), iProxyData.getType());
-            DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(proxy);
+            HttpHost proxy = new HttpHost(iProxyData.getHost(),
+                    iProxyData.getPort(), iProxyData.getType());
+            DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(
+                    proxy);
             hcBuilder.setRoutePlanner(routePlanner);
         }
 
         return hcBuilder.build();
     }
 
-    public void getOAuthEndpoints() throws IOException, UnexpectedResponse {
+    public void getOAuthEndpoints() throws IOException,
+            UnexpectedResponseException {
         URL url;
         try {
             url = new URL(this.url, OAUTH_INFO_ENDPOINT);
@@ -137,16 +144,18 @@ public class WirecloudAPI extends WizardFragment {
             response = httpclient.execute(request);
 
             if (response.getStatusLine().getStatusCode() != 200) {
-                throw new UnexpectedResponse();
+                throw new UnexpectedResponseException();
             }
 
             try {
-                JSONObject responseData = new JSONObject(EntityUtils.toString(response.getEntity()));
+                JSONObject responseData = new JSONObject(
+                        EntityUtils.toString(response.getEntity()));
                 this.AUTH_ENDPOINT = responseData.getString("auth_endpoint");
                 this.TOKEN_ENDPOINT = responseData.getString("token_endpoint");
-                this.UNIVERSAL_REDIRECT_URI = responseData.getString("default_redirect_uri");
+                this.UNIVERSAL_REDIRECT_URI = responseData
+                        .getString("default_redirect_uri");
             } catch (JSONException e) {
-                throw new UnexpectedResponse();
+                throw new UnexpectedResponseException();
             }
         } finally {
             httpclient.close();
@@ -156,7 +165,8 @@ public class WirecloudAPI extends WizardFragment {
         }
     }
 
-    public void deployWGT(File wgtFile, String token) throws IOException, UnexpectedResponse {
+    public void deployWGT(File wgtFile, String token) throws IOException,
+            FailureResponseException {
         URL url;
         try {
             url = new URL(this.url, RESOURCE_COLLECTION_PATH);
@@ -175,8 +185,21 @@ public class WirecloudAPI extends WizardFragment {
             httpclient = createHttpClient(url);
             response = httpclient.execute(request);
 
-            if (response.getStatusLine().getStatusCode() != 201) {
-                throw new UnexpectedResponse();
+            int statusCode = response.getStatusLine().getStatusCode();
+            switch (statusCode) {
+            case 201:
+                break;
+            case 400:
+            case 401:
+                try {
+                    throw FailureResponseException
+                            .createFailureException(EntityUtils
+                                    .toString(response.getEntity()));
+                } catch (JSONException e) {
+                    throw new UnexpectedResponseException();
+                }
+            default:
+                throw new UnexpectedResponseException();
             }
         } finally {
             httpclient.close();
@@ -186,14 +209,13 @@ public class WirecloudAPI extends WizardFragment {
         }
     }
 
-	public URL getAuthURL(String clientId, String redirectURI) throws OAuthSystemException, MalformedURLException {
+    public URL getAuthURL(String clientId, String redirectURI)
+            throws OAuthSystemException, MalformedURLException {
         String url = new URL(this.url, AUTH_ENDPOINT).toString();
 
         OAuthClientRequest request = OAuthClientRequest
-                .authorizationLocation(url)
-                .setClientId(clientId)
-                .setResponseType("code")
-                .setRedirectURI(redirectURI.toString())
+                .authorizationLocation(url).setClientId(clientId)
+                .setResponseType("code").setRedirectURI(redirectURI.toString())
                 .buildQueryMessage();
 
         try {
@@ -202,51 +224,63 @@ public class WirecloudAPI extends WizardFragment {
             e.printStackTrace();
             return null;
         }
-	}
+    }
 
-	public URL getAuthURL(String clientId) throws OAuthSystemException, MalformedURLException {
+    public URL getAuthURL(String clientId) throws OAuthSystemException,
+            MalformedURLException {
         return getAuthURL(clientId, UNIVERSAL_REDIRECT_URI);
-	}
+    }
 
-	public String obtainAuthToken(String code, String clientId, String clientSecret, String redirectURI) throws MalformedURLException {
-		String url = new URL(this.url, TOKEN_ENDPOINT).toString();
+    public String obtainAuthToken(String code, String clientId,
+            String clientSecret, String redirectURI)
+            throws MalformedURLException {
+        String url = new URL(this.url, TOKEN_ENDPOINT).toString();
 
-		try {
-	            OAuthClientRequest request = OAuthClientRequest
-	                .tokenLocation(url.toString())
-	                .setGrantType(GrantType.AUTHORIZATION_CODE)
-	                .setClientId(clientId)
-	                .setClientSecret(clientSecret)
-	                .setRedirectURI(redirectURI.toString())
-	                .setCode(code)
-	                .buildBodyMessage();
+        try {
+            OAuthClientRequest request = OAuthClientRequest
+                    .tokenLocation(url.toString())
+                    .setGrantType(GrantType.AUTHORIZATION_CODE)
+                    .setClientId(clientId).setClientSecret(clientSecret)
+                    .setRedirectURI(redirectURI.toString()).setCode(code)
+                    .buildBodyMessage();
 
-	            OAuthClient oAuthClient = new OAuthClient(new HttpClient4(createHttpClient(new URL(request.getLocationUri()))));
+            OAuthClient oAuthClient = createoAuthClient(request);
+            OAuthJSONAccessTokenResponse oAuthResponse = oAuthClient
+                    .accessToken(request, OAuthJSONAccessTokenResponse.class);
 
-	            OAuthJSONAccessTokenResponse oAuthResponse = oAuthClient.accessToken(request, OAuthJSONAccessTokenResponse.class);
+            this.token = oAuthResponse.getAccessToken();
+            return token;
 
-	            this.token = oAuthResponse.getAccessToken();
-	            return token;
-	            
-	        } catch (OAuthProblemException e) {
-	            System.out.println("OAuth error: " + e.getError());
-	            System.out.println("OAuth error description: " + e.getDescription());
-	        } catch (OAuthSystemException e) {
-				e.printStackTrace();
-			}
+        } catch (OAuthProblemException e) {
+            System.out.println("OAuth error: " + e.getError());
+            System.out
+                    .println("OAuth error description: " + e.getDescription());
+        } catch (OAuthSystemException e) {
+            e.printStackTrace();
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	public String obtainAuthToken(String code, String clientId, String clientSecret) throws MalformedURLException {
-		return obtainAuthToken(code, clientId, clientSecret, UNIVERSAL_REDIRECT_URI);
-	}
+    protected OAuthClient createoAuthClient(OAuthClientRequest request)
+            throws MalformedURLException {
+        return new OAuthClient(new HttpClient4(createHttpClient(new URL(
+                request.getLocationUri()))));
 
-	public String getToken() {
-		return token;
-	}
+    }
 
-    public JSONObject obtainMashableComponents() throws IOException, UnexpectedResponse {
+    public String obtainAuthToken(String code, String clientId,
+            String clientSecret) throws MalformedURLException {
+        return obtainAuthToken(code, clientId, clientSecret,
+                UNIVERSAL_REDIRECT_URI);
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public JSONObject obtainMashableComponents() throws IOException,
+            UnexpectedResponseException {
         URL url;
         try {
             url = new URL(this.url, OAUTH_INFO_ENDPOINT);
@@ -263,13 +297,14 @@ public class WirecloudAPI extends WizardFragment {
             response = httpclient.execute(request);
 
             if (response.getStatusLine().getStatusCode() != 200) {
-                throw new UnexpectedResponse();
+                throw new UnexpectedResponseException();
             }
 
             try {
-                return new JSONObject(EntityUtils.toString(response.getEntity()));
+                return new JSONObject(
+                        EntityUtils.toString(response.getEntity()));
             } catch (JSONException e) {
-                throw new UnexpectedResponse();
+                throw new UnexpectedResponseException();
             }
         } finally {
             httpclient.close();
@@ -279,7 +314,8 @@ public class WirecloudAPI extends WizardFragment {
         }
     }
 
-    public void uninstallResource(String resource) throws IOException, UnexpectedResponse {
+    public void uninstallResource(String resource) throws IOException,
+            UnexpectedResponseException {
         URL url = manageURL(this.url, RESOURCE_ENTRY_PATH, resource);
         HttpDelete request = new HttpDelete(url.toString());
         CloseableHttpClient httpclient = null;
@@ -291,7 +327,7 @@ public class WirecloudAPI extends WizardFragment {
             response = httpclient.execute(request);
 
             if (response.getStatusLine().getStatusCode() != 204) {
-                throw new UnexpectedResponse();
+                throw new UnexpectedResponseException();
             }
         } finally {
             httpclient.close();
@@ -304,7 +340,8 @@ public class WirecloudAPI extends WizardFragment {
     private URL manageURL(URL base, String path, String resource) {
         URL ret = null;
         try {
-            ret = new URL(base, new URI(null, null, path + "/" + resource, null, null).toString());
+            ret = new URL(base, new URI(null, null, path + "/" + resource,
+                    null, null).toString());
         } catch (MalformedURLException e) {
             throw new AssertionError(e);
         } catch (URISyntaxException e) {
@@ -314,7 +351,7 @@ public class WirecloudAPI extends WizardFragment {
         return ret;
     }
 
-	public void setToken(String TOKEN) {
-		this.token = TOKEN;
-	}
+    public void setToken(String TOKEN) {
+        this.token = TOKEN;
+    }
 }
