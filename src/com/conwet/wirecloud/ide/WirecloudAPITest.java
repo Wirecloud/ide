@@ -108,7 +108,7 @@ public class WirecloudAPITest extends TestCase {
     public void testGetOAuthEndpoints() throws IOException,
             UnexpectedResponseException {
         doReturn(mockedHttpClient).when(mockedAPI).createHttpClient(
-                any(URL.class));
+                eq(new URL("http://wirecloud.example.com/api/resources")));
         doReturn(mockedResponse).when(mockedHttpClient).execute(
                 any(HttpUriRequest.class));
         doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
@@ -173,7 +173,7 @@ public class WirecloudAPITest extends TestCase {
     public void testObtainMashableComponents() throws ClientProtocolException,
             IOException {
         doReturn(mockedHttpClient).when(mockedAPI).createHttpClient(
-                any(URL.class));
+                eq(new URL("http://wirecloud.example.com/api/resources")));
         doReturn(mockedResponse).when(mockedHttpClient).execute(
                 any(HttpUriRequest.class));
         doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
@@ -195,7 +195,7 @@ public class WirecloudAPITest extends TestCase {
     public void testUninstallResource() throws ClientProtocolException,
             IOException {
         doReturn(mockedHttpClient).when(mockedAPI).createHttpClient(
-                any(URL.class));
+                eq(new URL("http://wirecloud.example.com/api/resources")));
         doReturn(mockedResponse).when(mockedHttpClient).execute(
                 any(HttpUriRequest.class));
         doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
