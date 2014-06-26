@@ -222,6 +222,9 @@
         <catalogContribution id="default">
                 <uri
                         name="http://wirecloud.conwet.fi.upm.es/ns/template#"
+                        uri="platform:/plugin/com.conwet.wirecloud.eclipse.plugin/static/mashable_application_component_old.xsd" />
+                <uri
+                        name="http://wirecloud.conwet.fi.upm.es/ns/macdescription/1"
                         uri="platform:/plugin/com.conwet.wirecloud.eclipse.plugin/static/mashable_application_component.xsd" />
         </catalogContribution>
 </extension>
