@@ -161,6 +161,7 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 				}
 				
 			}
+            super.publishModule(kind, deltaKind, module, monitor);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -168,7 +169,6 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		super.publishModule(kind, deltaKind, module, monitor);
 	}
 	
 	@Override
