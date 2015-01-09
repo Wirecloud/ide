@@ -248,8 +248,7 @@ IOverwriteQuery {
 	private IProject[] wsProjects;
 
 	// constant from WizardArchiveFileResourceImportPage1
-	private static final String[] FILE_IMPORT_MASK = {
-		"*.jar;*.zip;*.tar;*.tar.gz;*.tgz", "*.*" }; //$NON-NLS-1$ //$NON-NLS-2$
+	private static final String[] FILE_IMPORT_MASK = {"*.wgt;*.zip;*.tar;*.tar.gz;*.tgz", "*.*" }; //$NON-NLS-1$ //$NON-NLS-2$
 
 	// The initial path to set
 	private String initialPath;
