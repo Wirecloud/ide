@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014 CoNWeT Lab., Universidad Politécnica de Madrid
+ *  Copyright (c) 2013-2015 CoNWeT Lab., Universidad Politécnica de Madrid
  *  
  *  This file is part of Wirecloud IDE.
  *
@@ -21,16 +21,12 @@
 package com.conwet.wirecloud.ide;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -46,10 +42,6 @@ import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.model.PublishOperation;
 import org.eclipse.wst.server.core.model.ServerBehaviourDelegate;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 
@@ -107,71 +99,69 @@ public class WirecloudServerBehaviour extends ServerBehaviourDelegate {
 		return status;
 	}
 
-	@Override
-	protected void publishModule(int kind, int deltaKind, IModule[] module,
-			IProgressMonitor monitor) throws CoreException {
+    @Override
+    protected void publishModule(int kind, int deltaKind, IModule[] module,
+            IProgressMonitor monitor) throws CoreException {
 
-		ArrayList<String> listToRetreat;
-		IServer server = this.getServer();
-		String TOKEN = server.getAttribute("TOKEN", "");
-		Zip zipper = new Zip();
-		WirecloudAPI api=null;
-		IProject project = module[0].getProject();
+        ArrayList<String> listToRetreat;
+        IServer server = this.getServer();
+        String TOKEN = server.getAttribute("TOKEN", "");
+        Zip zipper = new Zip();
+        WirecloudAPI api = null;
+        IProject project = module[0].getProject();
 
-		try {
-			api = new WirecloudAPI(this.getFinalURL().toString());
-			api.setToken(TOKEN);
+        try {
+            api = new WirecloudAPI(this.getFinalURL().toString());
+            api.setToken(TOKEN);
 
-			if (deltaKind != ServerBehaviourDelegate.REMOVED && project.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE) == IMarker.SEVERITY_ERROR) {
-				return;
-			};
+            if (deltaKind != ServerBehaviourDelegate.REMOVED
+                    && project.findMaxProblemSeverity(IMarker.PROBLEM, true,
+                            IResource.DEPTH_INFINITE) == IMarker.SEVERITY_ERROR) {
+                return;
+            }
 
-			//check deltaKind-> ADD, REMOVE or CHANGED module
-			if (deltaKind==ServerBehaviourDelegate.ADDED) {
-				File wgtFile = File.createTempFile(project.getName(), ".wgt");
-				zipper.zipFile(project.getLocation().toOSString(), wgtFile, true);
-				api.deployWGT(wgtFile, TOKEN);
-			} else if(deltaKind == ServerBehaviourDelegate.REMOVED || deltaKind == ServerBehaviourDelegate.CHANGED) {
-				listToRetreat=new ArrayList<>();
-				//Dom is used to read the tag's content
-				File fXmlFile = new File(project.getLocation() + "/config.xml");
-				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-				DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-				Document doc = dBuilder.parse(fXmlFile);
-				doc.getDocumentElement().normalize();
+            // check deltaKind-> ADD, REMOVE or CHANGED module
+            if (deltaKind == ServerBehaviourDelegate.ADDED) {
+                File wgtFile = File.createTempFile(project.getName(), ".wgt");
+                zipper.zipFile(project.getLocation().toOSString(), wgtFile, true);
+                api.deployWGT(wgtFile, TOKEN);
+            } else if (deltaKind == ServerBehaviourDelegate.REMOVED || deltaKind == ServerBehaviourDelegate.CHANGED) {
+                listToRetreat = new ArrayList<>();
 
-				NodeList nList = doc.getElementsByTagName("Catalog.ResourceDescription");
-				Node nNode = nList.item(0);
-				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-					Element eElement = (Element) nNode;
-					String vendor = eElement.getElementsByTagName("Vendor").item(0).getTextContent();
-					String Name = eElement.getElementsByTagName("Name").item(0).getTextContent();
-					String version = eElement.getElementsByTagName("Version").item(0).getTextContent();
-					String element = vendor+"/"+Name+"/"+version;
-					listToRetreat.add(element);
-				}
-				Iterator<String> resourcesToDeleteIterator = listToRetreat.iterator();
-				while (resourcesToDeleteIterator.hasNext()) {
-					api.uninstallResource(resourcesToDeleteIterator.next());
-				}
-				if (deltaKind == ServerBehaviourDelegate.CHANGED) {
-					File wgtFile = File.createTempFile(project.getName(), ".wgt");
-					zipper.zipFile(project.getLocation().toOSString(), wgtFile, true);
-					api.deployWGT(wgtFile, TOKEN);
-				}
-				
-			}
+                File descriptionFile = new File(project.getLocation() + "/config.xml");
+                try {
+                    MACDescription description = new MACDescription(
+                            descriptionFile);
+                    if (description.vendor != null && description.name != null && description.version != null) {
+                        String element = description.vendor + "/" + description.name + "/" + description.version;
+                        listToRetreat.add(element);
+                    }
+                } catch (MACDescriptionParseException e) {}
+
+                Iterator<String> resourcesToDeleteIterator = listToRetreat.iterator();
+                while (resourcesToDeleteIterator.hasNext()) {
+                    api.uninstallResource(resourcesToDeleteIterator.next());
+                }
+
+                if (deltaKind == ServerBehaviourDelegate.CHANGED) {
+                    File wgtFile = File.createTempFile(project.getName(), ".wgt");
+                    zipper.zipFile(project.getLocation().toOSString(), wgtFile, true);
+                    api.deployWGT(wgtFile, TOKEN);
+                }
+
+            }
             super.publishModule(kind, deltaKind, module, monitor);
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	@Override
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
 	protected void publishModules(int kind, List modules, List deltaKind2,
 			MultiStatus multi, IProgressMonitor monitor) {
 		super.publishModules(kind, modules, deltaKind2, multi, monitor);

@@ -20,6 +20,9 @@
 
 package com.conwet.wirecloud.ide;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -46,6 +49,10 @@ public class MACDescription {
     public String vendor;
     public String name;
     public String version;
+
+    public MACDescription(File descriptionFile) throws FileNotFoundException, IOException, MACDescriptionParseException {
+        this(new FileInputStream(descriptionFile));
+    }
 
     public MACDescription(InputStream stream) throws IOException, MACDescriptionParseException {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
