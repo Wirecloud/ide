@@ -45,6 +45,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jface.dialogs.Dialog;
@@ -63,7 +64,6 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
-import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
@@ -77,11 +77,14 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.dialogs.IOverwriteQuery;
+import org.eclipse.ui.dialogs.WizardDataTransferPage;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.internal.ide.StatusUtil;
 import org.eclipse.ui.statushandlers.StatusManager;
@@ -99,13 +102,18 @@ import com.conwet.wirecloud.ide.importcode.*;
  * The WizardProjectsImportPage is the page that allows the user to import
  * projects from a particular location.
  */
-public class WizardProjectsImportPage extends WizardPage implements
+public class WizardProjectsImportPage extends WizardDataTransferPage implements
 IOverwriteQuery {
 
-	/**
-	 * The file that contains all information of the widget or operator.
-	 */
-	public static final String REQUIRE_FILE = "config.xml"; //$NON-NLS-1$
+    /**
+     * The name of the folder containing metadata information for the workspace.
+     */
+    public static final String METADATA_FOLDER = ".metadata"; //$NON-NLS-1$
+
+    /**
+     * The file that contains all information of the widget or operator.
+     */
+    public static final String MAC_DESCRIPTION_FILE = "config.xml"; //$NON-NLS-1$
 
 	/**
 	 * Messages
@@ -148,38 +156,102 @@ IOverwriteQuery {
 	public class ProjectRecord {
 
 		Object resourceDescriptionFile;
+		Object projectDescriptionFile;
 		String projectName;
 		boolean hasConflicts;
-		IProjectDescription description;
+        public IProjectDescription description;
 
-		ProjectRecord(File file) {
-			resourceDescriptionFile = file;
-			setProjectName();
-		}
+        ProjectRecord(File file, File projectFile) {
+            resourceDescriptionFile = file;
+            projectDescriptionFile = projectFile;
+            setProjectName();
+        }
 
-		/**
-		 * Create a record for a project based on the info in the file.
-		 *
-		 * @param file
-		 */
-		ProjectRecord(Object file) {
-			resourceDescriptionFile = file;
-			setProjectName();
-		}
+        /**
+         * Create a record for a project based on the info in the file.
+         *
+         * @param file
+         */
+        ProjectRecord(Object file, Object projectFile) {
+            resourceDescriptionFile = file;
+            projectDescriptionFile = projectFile;
+            setProjectName();
+        }
 
         /**
          * Set the name of the project based on the resource description (config.xml).
          */
         private void setProjectName() {
             try {
-                InputStream stream = structureProvider.getContents(resourceDescriptionFile);
-                MACDescription description = new MACDescription(stream);
-                projectName = description.name;
+                MACDescription macDescription = null;
+
+                if (resourceDescriptionFile instanceof File) {
+                    if (projectDescriptionFile != null) {
+                        IPath path = new Path(((File)projectDescriptionFile).getPath());
+                        if (!isDefaultLocation(path)) {
+                            try {
+                                this.description = IDEWorkbenchPlugin.getPluginWorkspace().loadProjectDescription(path);
+                            } catch (CoreException e) {
+                                // Use info from the config.xml file
+                            }
+                        }
+                    }
+                    if (this.description == null) {
+                        try {
+                            macDescription = new MACDescription((File) resourceDescriptionFile);
+                        } catch (MACDescriptionParseException e) {
+                            // Get name from the path
+                        }
+                    }
+                } else {
+                    if (projectDescriptionFile != null) {
+                        InputStream stream = structureProvider.getContents(projectDescriptionFile);
+                        if (stream != null) {
+                            try {
+                                IDEWorkbenchPlugin.getPluginWorkspace().loadProjectDescription(stream);
+                            } catch (CoreException e) {
+                                // Use info from the config.xml file
+                            }
+                        }
+                    }
+                    if (this.description == null) {
+                        try {
+                            macDescription = new MACDescription(structureProvider.getContents(resourceDescriptionFile));
+                        } catch (MACDescriptionParseException e) {
+                            // Get name from the path
+                        }
+                    }
+                }
+                if (this.description != null) {
+                    projectName = this.description.getName();
+                } else if (macDescription != null) {
+                    projectName = macDescription.name;
+                    this.description = IDEWorkbenchPlugin.getPluginWorkspace().newProjectDescription(projectName);
+                } else {
+                    IPath path = new Path(((File)resourceDescriptionFile).getPath());
+                    projectName = path.segment(path.segmentCount() - 2);
+                    this.description = IDEWorkbenchPlugin.getPluginWorkspace().newProjectDescription(projectName);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
-            } catch (MACDescriptionParseException e) {
-                e.printStackTrace();
             }
+        }
+
+        /**
+         * Returns whether the given project description file path is in the
+         * default location for a project
+         *
+         * @param path
+         *      The path to examine
+         * @return Whether the given path is the default location for a project
+         */
+        private boolean isDefaultLocation(IPath path) {
+            // The project description file must at least be within the project,
+            // which is within the workspace location
+            if (path.segmentCount() < 2) {
+                return false;
+            }
+            return path.removeLastSegments(2).toFile().equals(Platform.getLocation().toFile());
         }
 
 		/**
@@ -247,8 +319,9 @@ IOverwriteQuery {
 
 	private IProject[] wsProjects;
 
-	// constant from WizardArchiveFileResourceImportPage1
-	private static final String[] FILE_IMPORT_MASK = {"*.wgt;*.zip;*.tar;*.tar.gz;*.tgz", "*.*" }; //$NON-NLS-1$ //$NON-NLS-2$
+    // constant from WizardArchiveFileResourceImportPage1
+    private static final String[] FILE_IMPORT_MASK = {
+        "*.wgt;*.zip;*.tar;*.tar.gz;*.tgz", "*.*" }; //$NON-NLS-1$ //$NON-NLS-2$
 
 	// The initial path to set
 	private String initialPath;
@@ -293,31 +366,47 @@ IOverwriteQuery {
 		setDescription(ImportProjectDescription);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets
-	 * .Composite)
-	 */
-	public void createControl(Composite parent) {
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets
+     * .Composite)
+     */
+    public void createControl(Composite parent) {
 
-		initializeDialogUnits(parent);
+        initializeDialogUnits(parent);
 
-		Composite workArea = new Composite(parent, SWT.NONE);
-		setControl(workArea);
+        Composite workArea = new Composite(parent, SWT.NONE);
+        setControl(workArea);
 
-		workArea.setLayout(new GridLayout());
-		workArea.setLayoutData(new GridData(GridData.FILL_BOTH
-				| GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL));
+        workArea.setLayout(new GridLayout());
+        workArea.setLayoutData(new GridData(GridData.FILL_BOTH
+                | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL));
 
-		createProjectsRoot(workArea);
-		createProjectsList(workArea);
-		Dialog.applyDialogFont(workArea);
+        createProjectsRoot(workArea);
+        createProjectsList(workArea);
+        createOptionsGroup(workArea);
+        Dialog.applyDialogFont(workArea);
+    }
 
-	}
 
-
+    @Override
+    protected void createOptionsGroupButtons(Group optionsGroup) {
+        copyCheckbox = new Button(optionsGroup, SWT.CHECK);
+        copyCheckbox.setText(DataTransferMessages.WizardProjectsImportPage_CopyProjectsIntoWorkspace);
+        copyCheckbox.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        copyCheckbox.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                copyFiles = copyCheckbox.getSelection();
+                // need to refresh the project list as projects already
+                // in the workspace directory are treated as conflicts
+                // and should be hidden too
+                projectsList.refresh(true);
+            }
+        });
+    }
 
 	/**
 	 * Create the checkbox list for the found projects.
@@ -662,9 +751,9 @@ IOverwriteQuery {
 			 * org.eclipse.swt.events.SelectionListener#widgetSelected(org.eclipse
 			 * .swt.events.SelectionEvent)
 			 */
-			//			public void widgetSelected(SelectionEvent e) {
-			//				directoryRadioSelected();
-			//			}
+			public void widgetSelected(SelectionEvent e) {
+				directoryRadioSelected();
+			}
 		});
 
 		projectFromArchiveRadio.addSelectionListener(new SelectionAdapter() {
@@ -689,8 +778,8 @@ IOverwriteQuery {
 			browseArchivesButton.setEnabled(true);
 			updateProjectsList(archivePathField.getText());
 			archivePathField.setFocus();
-			//			copyCheckbox.setSelection(true);
-			//			copyCheckbox.setEnabled(false);
+			copyCheckbox.setSelection(true);
+			copyCheckbox.setEnabled(false);
 		}
 	}
 
@@ -702,8 +791,8 @@ IOverwriteQuery {
 			browseArchivesButton.setEnabled(false);
 			updateProjectsList(directoryPathField.getText());
 			directoryPathField.setFocus();
-			//			copyCheckbox.setEnabled(true);
-			//			copyCheckbox.setSelection(copyFiles);
+			copyCheckbox.setEnabled(true);
+			copyCheckbox.setSelection(copyFiles);
 		}
 	}
 
@@ -766,12 +855,9 @@ IOverwriteQuery {
 				 */
 				public void run(IProgressMonitor monitor) {
 
-					monitor
-					.beginTask(
-							DataTransferMessages.WizardProjectsImportPage_SearchingMessage,
-							100);
+					monitor.beginTask(DataTransferMessages.WizardProjectsImportPage_SearchingMessage, 100);
 					selectedProjects = new ProjectRecord[0];
-					Collection files = new ArrayList();
+					Collection<ProjectRecord> files = new ArrayList<ProjectRecord>();
 					monitor.worked(10);
 					if (!dirSelected
 							&& ArchiveFileManipulations.isTarFile(path)) {
@@ -780,24 +866,15 @@ IOverwriteQuery {
 							return;
 						}
 
-						structureProvider = new TarLeveledStructureProvider(
-								sourceTarFile);
+						structureProvider = new TarLeveledStructureProvider(sourceTarFile);
 						Object child = structureProvider.getRoot();
 
-						if (!collectProjectFilesFromProvider(files, child, 0,
-								monitor)) {
+						if (!collectProjectFilesFromProvider(files, child, 0, monitor)) {
 							return;
 						}
-						Iterator filesIterator = files.iterator();
-						selectedProjects = new ProjectRecord[files.size()];
-						int index = 0;
 						monitor.worked(50);
-						monitor
-						.subTask(DataTransferMessages.WizardProjectsImportPage_ProcessingMessage);
-						while (filesIterator.hasNext()) {
-							selectedProjects[index++] = (ProjectRecord) filesIterator
-									.next();
-						}
+						monitor.subTask(DataTransferMessages.WizardProjectsImportPage_ProcessingMessage);
+						selectedProjects = (ProjectRecord[]) files.toArray(new ProjectRecord[files.size()]);
 					} else if (!dirSelected
 							&& ArchiveFileManipulations.isZipFile(path)) {
 						ZipFile sourceFile = getSpecifiedZipSourceFile(path);
@@ -808,39 +885,21 @@ IOverwriteQuery {
 								sourceFile);
 						Object child = structureProvider.getRoot();
 
-						if (!collectProjectFilesFromProvider(files, child, 0,
-								monitor)) {
+						if (!collectProjectFilesFromProvider(files, child, 0, monitor)) {
 							return;
 						}
-						Iterator filesIterator = files.iterator();
-						selectedProjects = new ProjectRecord[files.size()];
-						int index = 0;
 						monitor.worked(50);
-						monitor
-						.subTask(DataTransferMessages.WizardProjectsImportPage_ProcessingMessage);
-						while (filesIterator.hasNext()) {
-							selectedProjects[index++] = (ProjectRecord) filesIterator
-									.next();
-						}
-					}
-
-					else if (dirSelected && directory.isDirectory()) {
+						monitor.subTask(DataTransferMessages.WizardProjectsImportPage_ProcessingMessage);
+						selectedProjects = (ProjectRecord[]) files.toArray(new ProjectRecord[files.size()]);
+					} else if (dirSelected && directory.isDirectory()) {
 
 						if (!collectProjectFilesFromDirectory(files, directory,
 								null, monitor)) {
 							return;
 						}
-						Iterator filesIterator = files.iterator();
-						selectedProjects = new ProjectRecord[files.size()];
-						int index = 0;
 						monitor.worked(50);
-						monitor
-						.subTask(DataTransferMessages.WizardProjectsImportPage_ProcessingMessage);
-						while (filesIterator.hasNext()) {
-							File file = (File) filesIterator.next();
-							selectedProjects[index] = new ProjectRecord(file);
-							index++;
-						}
+						monitor.subTask(DataTransferMessages.WizardProjectsImportPage_ProcessingMessage);
+						selectedProjects = (ProjectRecord[]) files.toArray(new ProjectRecord[files.size()]);
 					} else {
 						monitor.worked(60);
 					}
@@ -941,114 +1000,132 @@ IOverwriteQuery {
 		return IDEWorkbenchMessages.WizardExportPage_internalErrorTitle;
 	}
 
-	/**
-	 * Collect the list of .project files that are under directory into files.
-	 *
-	 * @param files
-	 * @param directory
-	 * @param directoriesVisited
-	 * 		Set of canonical paths of directories, used as recursion guard
-	 * @param monitor
-	 * 		The monitor to report to
-	 * @return boolean <code>true</code> if the operation was completed.
-	 */
-	///FALTAMODIFICAR
-	private boolean collectProjectFilesFromDirectory(Collection files,
-			File directory, Set directoriesVisited, IProgressMonitor monitor) {
+    /**
+     * Collect the list of config.xml files that are under directory into files.
+     *
+     * @param files
+     * @param directory
+     * @param directoriesVisited
+     *            Set of canonical paths of directories, used as recursion guard
+     * @param monitor
+     *            The monitor to report to
+     * @return boolean <code>true</code> if the operation was completed.
+     */
+    private boolean collectProjectFilesFromDirectory(
+            Collection<ProjectRecord> files, File directory,
+            Set<String> directoriesVisited, IProgressMonitor monitor) {
 
-		if (monitor.isCanceled()) {
-			return false;
-		}
-		monitor.subTask(NLS.bind(
-				DataTransferMessages.WizardProjectsImportPage_CheckingMessage,
-				directory.getPath()));
-		File[] contents = directory.listFiles();
-		if (contents == null)
-			return false;
+        if (monitor.isCanceled()) {
+            return false;
+        }
+        monitor.subTask(NLS.bind(
+                DataTransferMessages.WizardProjectsImportPage_CheckingMessage,
+                directory.getPath()));
+        File[] contents = directory.listFiles();
+        if (contents == null) {
+            return false;
+        }
 
-		// Initialize recursion guard for recursive symbolic links
-		if (directoriesVisited == null) {
-			directoriesVisited = new HashSet();
-			try {
-				directoriesVisited.add(directory.getCanonicalPath());
-			} catch (IOException exception) {
+        // Initialize recursion guard for recursive symbolic links
+        if (directoriesVisited == null) {
+            directoriesVisited = new HashSet<String>();
+            try {
+                directoriesVisited.add(directory.getCanonicalPath());
+            } catch (IOException exception) {
 
-				StatusManager.getManager().handle(
-						StatusUtil.newStatus(IStatus.ERROR, exception
-								.getLocalizedMessage(), exception));
-			}
-		}
+                StatusManager.getManager().handle(
+                        StatusUtil.newStatus(IStatus.ERROR,
+                                exception.getLocalizedMessage(), exception));
+            }
+        }
 
-		// first look for project description files
-		final String dotProject = IProjectDescription.DESCRIPTION_FILE_NAME;
-		for (int i = 0; i < contents.length; i++) {
-			File file = contents[i];
-			if (file.isFile() && file.getName().equals(dotProject)) {
-				files.add(file);
-				// don't search sub-directories since we can't have nested
-				// projects
-				return true;
-			}
-		}
-		// no project description found, so recurse into sub-directories
-		for (int i = 0; i < contents.length; i++) {
-			if (contents[i].isDirectory()) {
-				if (!contents[i].getName().equals(REQUIRE_FILE)) {
-					try {
-						String canonicalPath = contents[i].getCanonicalPath();
-						if (!directoriesVisited.add(canonicalPath)) {
-							// already been here --> do not recurse
-							continue;
-						}
-					} catch (IOException exception) {
-						StatusManager.getManager().handle(
-								StatusUtil.newStatus(IStatus.ERROR, exception
-										.getLocalizedMessage(), exception));
+        Path directoryPath = new Path(directory.getPath());
+        File file = new File(directoryPath.append(MAC_DESCRIPTION_FILE).toOSString());
+        if (file.isFile()) {
+            File projectFile = new File(directoryPath.append(IProjectDescription.DESCRIPTION_FILE_NAME).toOSString());
+            if (!projectFile.isFile()) {
+                projectFile = null;
+            }
+            files.add(new ProjectRecord(file, projectFile));
+            // don't search sub-directories since we can't have nested
+            // projects
+            return true;
+        }
 
-					}
-					collectProjectFilesFromDirectory(files, contents[i],
-							directoriesVisited, monitor);
-				}
-			}
-		}
-		return true;
-	}
+        // no project description found, so recurse into sub-directories
+        for (int i = 0; i < contents.length; i++) {
+            if (contents[i].isDirectory()
+                    && !contents[i].getName().equals(METADATA_FOLDER)) {
+                try {
+                    String canonicalPath = contents[i].getCanonicalPath();
+                    if (!directoriesVisited.add(canonicalPath)) {
+                        // already been here --> do not recurse
+                        continue;
+                    }
+                } catch (IOException exception) {
+                    StatusManager
+                            .getManager()
+                            .handle(StatusUtil.newStatus(IStatus.ERROR,
+                                    exception.getLocalizedMessage(), exception));
 
-	/**
-	 * Collect the list of config.xml files that are under directory into files.
-	 *
-	 * @param files
-	 * @param monitor
-	 * 		The monitor to report to
-	 * @return boolean <code>true</code> if the operation was completed.
-	 */
-	private boolean collectProjectFilesFromProvider(Collection files,
-			Object entry, int level, IProgressMonitor monitor) {
+                }
+                collectProjectFilesFromDirectory(files, contents[i],
+                        directoriesVisited, monitor);
+            }
+        }
+        return true;
+    }
 
-		if (monitor.isCanceled()) {
-			return false;
-		}
-		monitor.subTask(NLS.bind(
-				DataTransferMessages.WizardProjectsImportPage_CheckingMessage,
-				structureProvider.getLabel(entry)));
-		List children = structureProvider.getChildren(entry);
-		if (children == null) {
-			children = new ArrayList(1);
-		}
-		Iterator childrenEnum = children.iterator();
-		while (childrenEnum.hasNext()) {
-			Object child = childrenEnum.next();
-			if (structureProvider.isFolder(child)) {
-				collectProjectFilesFromProvider(files, child, level + 1,
-						monitor);
-			}
-			String elementLabel = structureProvider.getLabel(child);
-			if (elementLabel.equals(REQUIRE_FILE)) {
-				files.add(new ProjectRecord(child));
-			}
-		}
-		return true;
-	}
+    /**
+     * Collect the list of config.xml files that are under directory into files.
+     *
+     * @param files
+     * @param monitor
+     *            The monitor to report to
+     * @return boolean <code>true</code> if the operation was completed.
+     */
+    private boolean collectProjectFilesFromProvider(
+            Collection<ProjectRecord> files, Object entry, int level,
+            IProgressMonitor monitor) {
+
+        if (monitor.isCanceled()) {
+            return false;
+        }
+        monitor.subTask(NLS.bind(
+                DataTransferMessages.WizardProjectsImportPage_CheckingMessage,
+                structureProvider.getLabel(entry)));
+        List children = structureProvider.getChildren(entry);
+        if (children == null) {
+            return false;
+        }
+        Iterator childrenEnum = children.iterator();
+        Object file = null;
+        Object projectFile = null;
+        while (childrenEnum.hasNext()) {
+            Object child = childrenEnum.next();
+            String elementLabel = structureProvider.getLabel(child);
+            if (elementLabel.equals(MAC_DESCRIPTION_FILE)) {
+                file = child;
+            } else if (elementLabel.equals(IProjectDescription.DESCRIPTION_FILE_NAME)) {
+                projectFile = child;
+            }
+        }
+        if (file != null) {
+            files.add(new ProjectRecord(file, projectFile));
+        }
+
+        // no project description found, so recurse into sub-directories
+        childrenEnum = children.iterator();
+        while (childrenEnum.hasNext()) {
+            Object child = childrenEnum.next();
+            String elementLabel = structureProvider.getLabel(child);
+            if (structureProvider.isFolder(child)) {
+                collectProjectFilesFromProvider(files, child, level + 1, monitor);
+            }
+        }
+
+        return true;
+    }
 
 	/**
 	 * The browse button has been selected. Select the location.
@@ -1091,8 +1168,7 @@ IOverwriteQuery {
 
 		FileDialog dialog = new FileDialog(archivePathField.getShell(), SWT.SHEET);
 		dialog.setFilterExtensions(FILE_IMPORT_MASK);
-		dialog
-		.setText(DataTransferMessages.WizardProjectsImportPage_SelectArchiveDialogTitle);
+		dialog.setText(DataTransferMessages.WizardProjectsImportPage_SelectArchiveDialogTitle);
 
 		String fileName = archivePathField.getText().trim();
 		if (fileName.length() == 0) {
@@ -1127,7 +1203,7 @@ IOverwriteQuery {
 	public boolean createProjects() {
 		//		saveWidgetValues();
 		final Object[] selected = projectsList.getCheckedElements();
-		createdProjects = new ArrayList();
+		createdProjects = new ArrayList<IProject>();
 		WorkspaceModifyOperation op = new WorkspaceModifyOperation() {
 			protected void execute(IProgressMonitor monitor)
 					throws InvocationTargetException, InterruptedException {
@@ -1168,25 +1244,10 @@ IOverwriteQuery {
 		ArchiveFileManipulations.closeStructureProvider(structureProvider,
 				getShell());
 
-		// Adds the projects to the working sets
-		//addToWorkingSets();
-
 		return true;
 	}
 
-	List createdProjects;
-
-	//		private void addToWorkingSets() {
-	//
-	//			IWorkingSet[] selectedWorkingSets = workingSetGroup.getSelectedWorkingSets();
-	//			if(selectedWorkingSets == null || selectedWorkingSets.length == 0)
-	//				return; // no Working set is selected
-	//			IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
-	//			for (Iterator i = createdProjects.iterator(); i.hasNext();) {
-	//				IProject project = (IProject) i.next();
-	//				workingSetManager.addToWorkingSets(project, selectedWorkingSets);
-	//			}
-	//		}
+	List<IProject> createdProjects;
 
 	/**
 	 * Performs clean-up if the user cancels the wizard without doing anything
@@ -1210,20 +1271,14 @@ IOverwriteQuery {
 		final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		final IProject project = workspace.getRoot().getProject(projectName);
 		createdProjects.add(project);
-		if (record.description == null) {
-			// error case
-			//throw new Exception();
-		} else {
-			record.description.setName(projectName);
-		}
-		if (record.resourceDescriptionFile != null) {
+
+		if (!(record.resourceDescriptionFile instanceof File)) {
 			//	 import from archive
 			ImportOperation operation = new ImportOperation(project
 					.getFullPath(), structureProvider.getRoot(), structureProvider, null);
 
 			operation.setContext(getShell());
 			operation.run(monitor);
-
 
 			IProject projectToAddNature = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
 			IFacetedProject facetedProject;
@@ -1251,33 +1306,32 @@ IOverwriteQuery {
 			}
 			return true;
 		}
+
 		// import from file system
 		File importSource = null;
 		if (copyFiles) {
 			// import project from location copying files - use default project
 			// location for this workspace
-			URI locationURI = record.description.getLocationURI();
-			// if location is null, project already exists in this location or
-			// some error condition occured.
+			URI locationURI = new File(((File)record.resourceDescriptionFile).getParent()).toURI();
 			if (locationURI != null) {
-				// validate the location of the project being copied
 				IStatus result = ResourcesPlugin.getWorkspace().validateProjectLocationURI(project,
 						locationURI);
-				if(!result.isOK())
+				if (!result.isOK()) {
 					throw new InvocationTargetException(new CoreException(result));
+				}
 
 				importSource = new File(locationURI);
-				IProjectDescription desc = workspace
-						.newProjectDescription(projectName);
+				IProjectDescription desc = workspace.newProjectDescription(projectName);
 				desc.setBuildSpec(record.description.getBuildSpec());
 				desc.setComment(record.description.getComment());
-				desc.setDynamicReferences(record.description
-						.getDynamicReferences());
+				desc.setDynamicReferences(record.description.getDynamicReferences());
 				desc.setNatureIds(record.description.getNatureIds());
-				desc.setReferencedProjects(record.description
-						.getReferencedProjects());
+				desc.setReferencedProjects(record.description.getReferencedProjects());
 				record.description = desc;
 			}
+		} else {
+		    IPath locationPath = new Path(((File)record.resourceDescriptionFile).getParent());
+		    record.description.setLocation(locationPath);
 		}
 
 		try {
@@ -1309,7 +1363,6 @@ IOverwriteQuery {
 			operation.setCreateContainerStructure(false);
 			operation.run(monitor);
 		}
-
 
 		return true;
 	}
@@ -1410,7 +1463,7 @@ IOverwriteQuery {
 	 * 	workspace
 	 */
 	public ProjectRecord[] getProjectRecords() {
-		List projectRecords = new ArrayList();
+		List<ProjectRecord> projectRecords = new ArrayList<ProjectRecord>();
 		for (int i = 0; i < selectedProjects.length; i++) {
 			if ( (isProjectInWorkspacePath(selectedProjects[i].getProjectName()) && copyFiles)||
 					isProjectInWorkspace(selectedProjects[i].getProjectName())) {
@@ -1418,8 +1471,7 @@ IOverwriteQuery {
 			}
 			projectRecords.add(selectedProjects[i]);
 		}
-		return (ProjectRecord[]) projectRecords
-				.toArray(new ProjectRecord[projectRecords.size()]);
+		return (ProjectRecord[]) projectRecords.toArray(new ProjectRecord[projectRecords.size()]);
 	}
 
 	/**
@@ -1429,7 +1481,7 @@ IOverwriteQuery {
 	 * @return true if there is a directory with the same name of the imported project
 	 */
 	private boolean isProjectInWorkspacePath(String projectName){
-		final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		final IWorkspace workspace = IDEWorkbenchPlugin.getPluginWorkspace();
 		IPath wsPath = workspace.getRoot().getLocation();
 		IPath localProjectPath = wsPath.append(projectName);
 		return localProjectPath.toFile().exists();
@@ -1471,7 +1523,7 @@ IOverwriteQuery {
 		if (settings != null) {
 			// checkbox
 			copyFiles = settings.getBoolean(STORE_COPY_PROJECT_ID);
-			//				copyCheckbox.setSelection(copyFiles);
+			copyCheckbox.setSelection(copyFiles);
 			lastCopyFiles = copyFiles;
 		}
 
@@ -1538,4 +1590,13 @@ IOverwriteQuery {
 	public Button getCopyCheckbox() {
 		return copyCheckbox;
 	}
+
+    @Override
+    public void handleEvent(Event event) {
+    }
+
+    @Override
+    protected boolean allowNewContainerName() {
+        return true;
+    }
 }
