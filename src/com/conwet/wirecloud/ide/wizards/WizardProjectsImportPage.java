@@ -34,10 +34,6 @@ import java.util.Set;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -94,12 +90,9 @@ import org.eclipse.ui.wizards.datatransfer.ImportOperation;
 import org.eclipse.wst.common.project.facet.core.IFacetedProject;
 import org.eclipse.wst.common.project.facet.core.IProjectFacet;
 import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
+import com.conwet.wirecloud.ide.MACDescription;
+import com.conwet.wirecloud.ide.MACDescriptionParseException;
 import com.conwet.wirecloud.ide.importcode.*;
 
 /**
@@ -174,35 +167,20 @@ IOverwriteQuery {
 			setProjectName();
 		}
 
-		/**
-		 * Set the name of the project based on the resource description (config.xml).
-		 */
-		private void setProjectName() {
-			try {
-				InputStream stream = structureProvider
-						.getContents(resourceDescriptionFile);
-
-				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-				DocumentBuilder dBuilder;
-				dBuilder = dbFactory.newDocumentBuilder();
-				Document doc;
-				doc = dBuilder.parse(stream);
-				doc.getDocumentElement().normalize();
-				NodeList nList = doc.getElementsByTagName("Catalog.ResourceDescription");
-				Node nNode = nList.item(0);
-				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-					Element eElement = (Element) nNode;
-					String name = eElement.getElementsByTagName("Name").item(0).getTextContent();
-					projectName = name;
-				}
-			} catch (ParserConfigurationException e) {
-				e.printStackTrace();
-			} catch (SAXException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+        /**
+         * Set the name of the project based on the resource description (config.xml).
+         */
+        private void setProjectName() {
+            try {
+                InputStream stream = structureProvider.getContents(resourceDescriptionFile);
+                MACDescription description = new MACDescription(stream);
+                projectName = description.name;
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (MACDescriptionParseException e) {
+                e.printStackTrace();
+            }
+        }
 
 		/**
 		 * Get the name of the project
