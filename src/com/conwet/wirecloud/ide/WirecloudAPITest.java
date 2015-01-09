@@ -74,14 +74,6 @@ public class WirecloudAPITest extends TestCase {
 
     @Test
     public void testDeployWGT400() throws ClientProtocolException, IOException {
-        /*
-         * "400" => datos invalidos (config.xml con fallos, o otros datos del
-         * post) "409" => ya está instalado "204" => ya está instalado pero se
-         * ha indicado que eso da = "401" => la petición no esta autenticada
-         * (vamos se considera que es el usuario Anónimo) ? "403" => la petición
-         * está autenticada pero no se tiene permisos
-         */
-
         File wgtFile = new File("File");
         String token = null;
         doReturn(mockedHttpClient).when(mockedAPI).createHttpClient(
@@ -108,7 +100,7 @@ public class WirecloudAPITest extends TestCase {
     public void testGetOAuthEndpoints() throws IOException,
             UnexpectedResponseException {
         doReturn(mockedHttpClient).when(mockedAPI).createHttpClient(
-                eq(new URL("http://wirecloud.example.com/api/resources")));
+                eq(new URL("http://wirecloud.example.com/.well-known/oauth")));
         doReturn(mockedResponse).when(mockedHttpClient).execute(
                 any(HttpUriRequest.class));
         doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
@@ -117,14 +109,15 @@ public class WirecloudAPITest extends TestCase {
         String response = "{\"default_redirect_uri\": \"http://auth.example.com/oauth2/default_redirect_uri\", \"token_endpoint\": \"http://wirecloudtest.example.com/token\", \"version\": \"2.0\", \"auth_endpoint\": \"http://wirecloudtest.example.com/authorize\"}";
         InputStream is = new ByteArrayInputStream(response.getBytes());
         doReturn(is).when(mockedEntity).getContent();
+
         mockedAPI.getOAuthEndpoints();
+
         assertEquals("http://wirecloudtest.example.com/authorize",
                 mockedAPI.AUTH_ENDPOINT);
         assertEquals("http://wirecloudtest.example.com/token",
                 mockedAPI.TOKEN_ENDPOINT);
         assertEquals("http://auth.example.com/oauth2/default_redirect_uri",
                 mockedAPI.UNIVERSAL_REDIRECT_URI);
-
     }
 
     @Test
@@ -193,21 +186,32 @@ public class WirecloudAPITest extends TestCase {
 
     @Test
     public void testUninstallResource() throws ClientProtocolException,
+            IOException, UnexpectedResponseException {
+        doReturn(mockedHttpClient).when(mockedAPI).createHttpClient(
+                eq(new URL("http://wirecloud.example.com/api/resource/WireCloud/Test/1.0")));
+        doReturn(mockedResponse).when(mockedHttpClient).execute(
+                any(HttpUriRequest.class));
+        doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
+        doReturn(204).when(mockedStatusLine).getStatusCode();
+
+        mockedAPI.uninstallResource("WireCloud/Test/1.0");
+    }
+
+    @Test
+    public void testUninstallResourceUnexpectedError() throws ClientProtocolException,
             IOException {
         doReturn(mockedHttpClient).when(mockedAPI).createHttpClient(
-                eq(new URL("http://wirecloud.example.com/api/resources")));
+                eq(new URL("http://wirecloud.example.com/api/resource/WireCloud/Test/1.0")));
         doReturn(mockedResponse).when(mockedHttpClient).execute(
                 any(HttpUriRequest.class));
         doReturn(mockedStatusLine).when(mockedResponse).getStatusLine();
         doReturn(200).when(mockedStatusLine).getStatusCode();
 
         try {
-            mockedAPI.uninstallResource("resource");
+            mockedAPI.uninstallResource("WireCloud/Test/1.0");
             fail("UnexpectedResponse should be thrown.");
         } catch (UnexpectedResponseException e) {
-
+            // Everything worked as expected
         }
-
     }
-
 }

@@ -283,7 +283,7 @@ public class WirecloudAPI extends WizardFragment {
             UnexpectedResponseException {
         URL url;
         try {
-            url = new URL(this.url, OAUTH_INFO_ENDPOINT);
+            url = new URL(this.url, RESOURCE_COLLECTION_PATH);
         } catch (MalformedURLException e) {
             throw new AssertionError(e);
         }
