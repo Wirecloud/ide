@@ -186,8 +186,7 @@
   <fragment
      id="org.eclipse.jst.server.generic.runtime"
      typeIds="org.eclipsewtp.server.wirecloud.runtime.10"
-     class="org.eclipse.jst.server.generic.ui.internal
-                                 .GenericServerRuntimeWizardFragment"/>
+     class="org.eclipse.jst.server.generic.ui.internal.GenericServerRuntimeWizardFragment"/>
   <fragment
      id="org.eclipse.jst.server.generic.server"
      typeIds="org.eclipsewtp.server.wirecloud.server"
