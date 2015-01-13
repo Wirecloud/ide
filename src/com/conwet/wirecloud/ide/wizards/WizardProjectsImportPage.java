@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014 CoNWeT Lab., Universidad Politécnica de Madrid
+ *  Copyright (c) 2013-2015 CoNWeT Lab., Universidad Politécnica de Madrid
  *
  *  This file is part of Wirecloud IDE.
  *
@@ -97,6 +97,9 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import com.conwet.wirecloud.ide.MACDescription;
 import com.conwet.wirecloud.ide.MACDescriptionParseException;
 import com.conwet.wirecloud.ide.importcode.*;
+import com.conwet.wirecloud.ide.natures.OperatorProjectNature;
+import com.conwet.wirecloud.ide.natures.WidgetProjectNature;
+import com.conwet.wirecloud.ide.projects.ProjectSupport;
 
 /**
  * The WizardProjectsImportPage is the page that allows the user to import
@@ -155,11 +158,13 @@ IOverwriteQuery {
 	 */
 	public class ProjectRecord {
 
-		Object resourceDescriptionFile;
-		Object projectDescriptionFile;
-		String projectName;
-		boolean hasConflicts;
-        public IProjectDescription description;
+        Object resourceDescriptionFile;
+        Object projectDescriptionFile;
+        String projectName;
+        boolean hasConflicts;
+
+        public MACDescription macDescription = null;
+        public IProjectDescription description = null;
 
         ProjectRecord(File file, File projectFile) {
             resourceDescriptionFile = file;
@@ -183,9 +188,14 @@ IOverwriteQuery {
          */
         private void setProjectName() {
             try {
-                MACDescription macDescription = null;
 
                 if (resourceDescriptionFile instanceof File) {
+                    try {
+                        macDescription = new MACDescription((File) resourceDescriptionFile);
+                    } catch (MACDescriptionParseException e) {
+                        // Ignore
+                    }
+
                     if (projectDescriptionFile != null) {
                         IPath path = new Path(((File)projectDescriptionFile).getPath());
                         if (!isDefaultLocation(path)) {
@@ -196,14 +206,14 @@ IOverwriteQuery {
                             }
                         }
                     }
-                    if (this.description == null) {
-                        try {
-                            macDescription = new MACDescription((File) resourceDescriptionFile);
-                        } catch (MACDescriptionParseException e) {
-                            // Get name from the path
-                        }
-                    }
+
                 } else {
+                    try {
+                        macDescription = new MACDescription(structureProvider.getContents(resourceDescriptionFile));
+                    } catch (MACDescriptionParseException e) {
+                        // Ignore
+                    }
+
                     if (projectDescriptionFile != null) {
                         InputStream stream = structureProvider.getContents(projectDescriptionFile);
                         if (stream != null) {
@@ -214,14 +224,8 @@ IOverwriteQuery {
                             }
                         }
                     }
-                    if (this.description == null) {
-                        try {
-                            macDescription = new MACDescription(structureProvider.getContents(resourceDescriptionFile));
-                        } catch (MACDescriptionParseException e) {
-                            // Get name from the path
-                        }
-                    }
                 }
+
                 if (this.description != null) {
                     projectName = this.description.getName();
                 } else if (macDescription != null) {
@@ -1273,37 +1277,20 @@ IOverwriteQuery {
 		createdProjects.add(project);
 
 		if (!(record.resourceDescriptionFile instanceof File)) {
-			//	 import from archive
+			// import from archive
 			ImportOperation operation = new ImportOperation(project
 					.getFullPath(), structureProvider.getRoot(), structureProvider, null);
 
 			operation.setContext(getShell());
 			operation.run(monitor);
-
-			IProject projectToAddNature = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
-			IFacetedProject facetedProject;
 			try {
-				if (!projectToAddNature.isOpen()) {
-					projectToAddNature.open(null);
-                }
-				facetedProject = ProjectFacetsManager.create(projectToAddNature, true, null);
-				// Install JavaScript and MAC facets
-				Set<IProjectFacet> facets = new HashSet<>(facetedProject.getFixedProjectFacets());
-
-				IProjectFacet jsFacet = ProjectFacetsManager.getProjectFacet("wst.jsdt.web");
-				facets.add(jsFacet);
-				facetedProject.installProjectFacet(jsFacet.getDefaultVersion(), null, null);
-
-				facetedProject.setFixedProjectFacets(facets);
-				IProjectFacet macFacet = ProjectFacetsManager.getProjectFacet("com.conwet.applicationmashup.mac");
-				facetedProject.installProjectFacet(macFacet.getDefaultVersion(), null, null);
-
-				facets.add(jsFacet);
-				facets.add(macFacet);
-				facetedProject.setFixedProjectFacets(facets);
+			    project.open(IResource.BACKGROUND_REFRESH, new SubProgressMonitor(monitor, 70));
 			} catch (CoreException e) {
-				e.printStackTrace();
+			    throw new InvocationTargetException(e);
+			} finally {
+			    monitor.done();
 			}
+			prepareProject(record);
 			return true;
 		}
 
@@ -1364,6 +1351,7 @@ IOverwriteQuery {
 			operation.run(monitor);
 		}
 
+		prepareProject(record);
 		return true;
 	}
 
@@ -1581,6 +1569,42 @@ IOverwriteQuery {
 					.getSelection());
 		}
 	}
+
+    public void prepareProject(ProjectRecord record) throws InvocationTargetException {
+        IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(record.getProjectName());
+        IFacetedProject facetedProject;
+        try {
+            facetedProject = ProjectFacetsManager.create(project, true, null);
+
+            // Install JavaScript and MAC facets
+            Set<IProjectFacet> facets = new HashSet<>(facetedProject.getFixedProjectFacets());
+
+            IProjectFacet jsFacet = ProjectFacetsManager.getProjectFacet("wst.jsdt.web");
+            facets.add(jsFacet);
+            facetedProject.installProjectFacet(jsFacet.getDefaultVersion(), null, null);
+
+            facetedProject.setFixedProjectFacets(facets);
+            IProjectFacet macFacet = ProjectFacetsManager.getProjectFacet("com.conwet.applicationmashup.mac");
+            facetedProject.installProjectFacet(macFacet.getDefaultVersion(), null, null);
+
+            facets.add(jsFacet);
+            facets.add(macFacet);
+            facetedProject.setFixedProjectFacets(facets);
+
+            // Install widget or operator nature
+            if (record.macDescription != null) {
+                switch (record.macDescription.type) {
+                case "widget":
+                    ProjectSupport.addNature(project, WidgetProjectNature.NATURE_ID);
+                    break;
+                case "operator":
+                    ProjectSupport.addNature(project, OperatorProjectNature.NATURE_ID);
+                }
+            }
+        } catch (CoreException e) {
+            throw new InvocationTargetException(e);
+        }
+    }
 
 	/**
 	 * Method used for test suite.

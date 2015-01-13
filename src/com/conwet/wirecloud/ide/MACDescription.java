@@ -46,6 +46,7 @@ import org.xml.sax.SAXException;
 
 public class MACDescription {
 
+    public String type;
     public String vendor;
     public String name;
     public String version;
@@ -142,6 +143,7 @@ public class MACDescription {
     }
 
     private void parseOldXMLDescription(Document doc) throws MACDescriptionParseException {
+        type = "widget";
         vendor = getStringField(doc, "/oldwc:Template/oldwc:Catalog.ResourceDescription/oldwc:Vendor");
         name = getStringField(doc, "/oldwc:Template/oldwc:Catalog.ResourceDescription/oldwc:Name");
         version = getStringField(doc, "/oldwc:Template/oldwc:Catalog.ResourceDescription/oldwc:Version");
@@ -154,6 +156,8 @@ public class MACDescription {
         xpath.setNamespaceContext(new HardcodedNamespaceResolver());
 
         Element root = doc.getDocumentElement();
+
+        type = root.getTagName();
 
         if (root.hasAttribute("vendor")) {
             vendor = root.getAttribute("vendor");

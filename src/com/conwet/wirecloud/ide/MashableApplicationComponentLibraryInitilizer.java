@@ -36,7 +36,7 @@ public class MashableApplicationComponentLibraryInitilizer extends
 
 	@Override
 	public String getDescription() {
-		return "Widget API support (Open Spec of the Application Mashup GE at FI-WARE)";
+		return "Widget API support (Open Spec of the Application Mashup GE of FIWARE)";
 	}
 
 	@Override

@@ -181,7 +181,7 @@ public abstract class ProjectSupport {
 		}	
     }
     
-    protected static void addNature(IProject project, String nature) throws CoreException {
+    public static void addNature(IProject project, String nature) throws CoreException {
         if (!project.hasNature(nature)) {
             IProjectDescription description = project.getDescription();
             String[] prevNatures = description.getNatureIds();

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013 CoNWeT Lab., Universidad Politécnica de Madrid
+ *  Copyright (c) 2013-2015 CoNWeT Lab., Universidad Politécnica de Madrid
  *  
  *  This file is part of Wirecloud IDE.
  *
@@ -32,30 +32,31 @@ import org.eclipse.wst.jsdt.core.JsGlobalScopeContainerInitializer;
 
 public class MACFacetInstallDelegate implements IDelegate {
 
-	@Override
-	public void execute(final IProject pj, final IProjectFacetVersion fv,
-			final Object config, final IProgressMonitor monitor)
+    @Override
+    public void execute(final IProject pj, final IProjectFacetVersion fv,
+            final Object config, final IProgressMonitor monitor)
 
-	throws CoreException
+    throws CoreException
 
-	{
-		try {
-			WirecloudModuleFactory factory = new WirecloudModuleFactory();
-			factory.createModule(pj);
-			
-			IJavaScriptProject jsProject = JavaScriptCore.create(pj);
-			JsGlobalScopeContainerInitializer container = new MashableApplicationComponentLibraryInitilizer();
+    {
+        try {
+            WirecloudModuleFactory factory = new WirecloudModuleFactory();
+            factory.createModule(pj);
 
-			// Add the Mashable Application Component JavaScript Library to the project
-			IIncludePathEntry entry = JavaScriptCore.newContainerEntry(container.getPath());
-			IIncludePathEntry[] ipaths = jsProject.getRawIncludepath();
-			IIncludePathEntry[] newPaths = new IIncludePathEntry[ipaths.length +1];
-			System.arraycopy(ipaths, 0, newPaths, 0, ipaths.length);
-			newPaths[ipaths.length] = entry;
-			jsProject.setRawIncludepath(newPaths, null);
-		} finally {
-			monitor.done();
-		}
-	}
+            IJavaScriptProject jsProject = JavaScriptCore.create(pj);
+            JsGlobalScopeContainerInitializer container = new MashableApplicationComponentLibraryInitilizer();
+
+            // Add the Mashable Application Component JavaScript Library to the
+            // project
+            IIncludePathEntry entry = JavaScriptCore.newContainerEntry(container.getPath());
+            IIncludePathEntry[] ipaths = jsProject.getRawIncludepath();
+            IIncludePathEntry[] newPaths = new IIncludePathEntry[ipaths.length + 1];
+            System.arraycopy(ipaths, 0, newPaths, 0, ipaths.length);
+            newPaths[ipaths.length] = entry;
+            jsProject.setRawIncludepath(newPaths, null);
+        } finally {
+            monitor.done();
+        }
+    }
 
 }
