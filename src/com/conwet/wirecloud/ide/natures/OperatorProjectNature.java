@@ -26,30 +26,28 @@ import org.eclipse.core.runtime.CoreException;
 
 public class OperatorProjectNature implements IProjectNature {
 
-	public static final String NATURE_ID = "com.conwet.wirecloud.ide.OperatorProjectNature"; //$NON-NLS-1$
-	
-	@Override
-	public void configure() throws CoreException {
-		// TODO Auto-generated method stub
+    public static final String NATURE_ID = "com.conwet.wirecloud.ide.OperatorProjectNature"; //$NON-NLS-1$
 
-	}
+    private IProject project;
 
-	@Override
-	public void deconfigure() throws CoreException {
-		// TODO Auto-generated method stub
+    @Override
+    public void configure() throws CoreException {
+        // Nothing to do
+    }
 
-	}
+    @Override
+    public void deconfigure() throws CoreException {
+        // Nothing to do
+    }
 
-	@Override
-	public IProject getProject() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public IProject getProject() {
+        return project;
+    }
 
-	@Override
-	public void setProject(IProject project) {
-		// TODO Auto-generated method stub
-
-	}
+    @Override
+    public void setProject(IProject project) {
+        this.project = project;
+    }
 
 }
