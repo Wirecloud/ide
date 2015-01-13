@@ -1283,14 +1283,14 @@ IOverwriteQuery {
 
 			operation.setContext(getShell());
 			operation.run(monitor);
-			try {
-			    project.open(IResource.BACKGROUND_REFRESH, new SubProgressMonitor(monitor, 70));
-			} catch (CoreException e) {
-			    throw new InvocationTargetException(e);
-			} finally {
-			    monitor.done();
-			}
 			prepareProject(record);
+            try {
+                project.open(IResource.BACKGROUND_REFRESH, new SubProgressMonitor(monitor, 70));
+            } catch (CoreException e) {
+                throw new InvocationTargetException(e);
+            } finally {
+                monitor.done();
+            }
 			return true;
 		}
 
@@ -1328,6 +1328,7 @@ IOverwriteQuery {
 					100);
 			project.create(record.description, new SubProgressMonitor(monitor,
 					30));
+			prepareProject(record);
 			project.open(IResource.BACKGROUND_REFRESH, new SubProgressMonitor(
 					monitor, 70));
 		} catch (CoreException e) {
@@ -1351,7 +1352,6 @@ IOverwriteQuery {
 			operation.run(monitor);
 		}
 
-		prepareProject(record);
 		return true;
 	}
 
