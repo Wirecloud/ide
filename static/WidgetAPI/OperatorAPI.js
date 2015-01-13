@@ -20,7 +20,9 @@ MashupPlatform.http = (function MashupPlatform$http(){})();
 MashupPlatform.http.buildProxyURL = function buildProxyURL(url, options) {return "";};
 
 /**
- * Sends a HTTP request.
+ * Sends an HTTP request. This method internally calls the buildProxyURL method
+ * for working around any possible problem related with the same-origin policy
+ * followed by browser (allowing CORS requests).
  * @param {String} 	url			The target URL.
  * @param {Object}	options		An object with a list of request options (see the request options section for more details).  
  */
