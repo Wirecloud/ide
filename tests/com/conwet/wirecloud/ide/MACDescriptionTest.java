@@ -42,6 +42,31 @@ public class MACDescriptionTest extends TestCase {
         super(testname);
     }
 
+    @Test()
+    public void testParseUnsupportedDescriptionFormat() throws IOException, MACDescriptionParseException {
+        InputStream source = new ByteArrayInputStream("unsupported format".getBytes(Charset.forName("UTF-8")));
+        try {
+            new MACDescription(source);
+            fail();
+        } catch (MACDescriptionParseException e) {}
+    }
+
+    @Test()
+    public void testParseUnsupportedXMLFormat() throws IOException, MACDescriptionParseException {
+        InputStream source = new ByteArrayInputStream("<element></element>".getBytes(Charset.forName("UTF-8")));
+        try {
+            new MACDescription(source);
+        } catch (MACDescriptionParseException e) {}
+    }
+
+    @Test()
+    public void testParseUnsupportedXMLNamespace() throws IOException, MACDescriptionParseException {
+        InputStream source = new ByteArrayInputStream("<element xmlns=\"http://other.namespace.com/\"></element>".getBytes(Charset.forName("UTF-8")));
+        try {
+            new MACDescription(source);
+        } catch (MACDescriptionParseException e) {}
+    }
+
     @Test
     public void testParseBasicOldXMLDescription() throws IOException, MACDescriptionParseException {
         InputStream source = new ByteArrayInputStream(BASIC_OLD_XML_DESCRIPTION.getBytes(Charset.forName("UTF-8")));

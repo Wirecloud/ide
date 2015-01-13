@@ -64,14 +64,19 @@ public class MACDescription {
         try {
             dBuilder = dbFactory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
-            throw new MACDescriptionParseException("error", e);
+            throw new MACDescriptionParseException("Unexpected Error", e);
         }
         try {
             doc = dBuilder.parse(stream);
         } catch (SAXException e) {
-            throw new MACDescriptionParseException("error", e);
+            throw new MACDescriptionParseException("Invalid XML document", e);
         }
-        switch(doc.getDocumentElement().getNamespaceURI()) {
+        String namespace = doc.getDocumentElement().getNamespaceURI();
+        if (namespace == null) {
+            throw new MACDescriptionParseException("Document without root namespace");
+        }
+
+        switch(namespace) {
         case "http://wirecloud.conwet.fi.upm.es/ns/template#":
             parseOldXMLDescription(doc);
             break;
