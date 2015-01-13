@@ -36,7 +36,7 @@ public class MACDescriptionTest extends TestCase {
     private String INCOMPLETE_OLD_XML_DESCRIPTION = "<Template xmlns=\"http://wirecloud.conwet.fi.upm.es/ns/template#\"><Catalog.ResourceDescription><Name>Test</Name></Catalog.ResourceDescription></Template>";
     private String BASIC_OLD_XML_DESCRIPTION = "<Template xmlns=\"http://wirecloud.conwet.fi.upm.es/ns/template#\"><Catalog.ResourceDescription><Vendor>WireCloud</Vendor><Name>Test</Name><Version>1.0</Version></Catalog.ResourceDescription></Template>";
     private String INCOMPLETE_XML_DESCRIPTION = "<widget xmlns=\"http://wirecloud.conwet.fi.upm.es/ns/macdescription/1\" name=\"Test\"></widget>";
-    private String BASIC_XML_DESCRIPTION = "<widget xmlns=\"http://wirecloud.conwet.fi.upm.es/ns/macdescription/1\" vendor=\"WireCloud\" name=\"Test\" version=\"1.0\"></widget>";
+    private String BASIC_XML_DESCRIPTION = "<widget xmlns=\"http://wirecloud.conwet.fi.upm.es/ns/macdescription/1\" vendor=\"WireCloud\" name=\"Test\" version=\"1.0\"><details><description>Test widget</description></details></widget>";
 
     public MACDescriptionTest(String testname) throws MalformedURLException {
         super(testname);
@@ -67,6 +67,7 @@ public class MACDescriptionTest extends TestCase {
         assertEquals("WireCloud", description.vendor);
         assertEquals("Test", description.name);
         assertEquals("1.0", description.version);
+        assertEquals("Test widget", description.description);
     }
 
     @Test

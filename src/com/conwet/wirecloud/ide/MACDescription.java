@@ -49,6 +49,9 @@ public class MACDescription {
     public String vendor;
     public String name;
     public String version;
+    public String description;
+
+    private static XPath xpath;
 
     public MACDescription(File descriptionFile) throws FileNotFoundException, IOException, MACDescriptionParseException {
         this(new FileInputStream(descriptionFile));
@@ -80,7 +83,7 @@ public class MACDescription {
         };
     }
 
-    class HardcodedNamespaceResolver implements NamespaceContext {
+    private static class HardcodedNamespaceResolver implements NamespaceContext {
 
         /**
          * This method returns the uri for all prefixes needed. Wherever possible
@@ -90,12 +93,10 @@ public class MACDescription {
          * @return uri
          */
         public String getNamespaceURI(String prefix) {
-            if (prefix == null) {
-                throw new IllegalArgumentException("No prefix provided!");
-            } else if (prefix.equals(XMLConstants.DEFAULT_NS_PREFIX) || prefix.equals("wc")) {
+            if (prefix.equals("wc")) {
                 return "http://wirecloud.conwet.fi.upm.es/ns/macdescription/1";
             } else if (prefix.equals("oldwc")) {
-                    return "http://wirecloud.conwet.fi.upm.es/ns/template#";
+                return "http://wirecloud.conwet.fi.upm.es/ns/template#";
             } else {
                 return XMLConstants.NULL_NS_URI;
             }
@@ -114,47 +115,39 @@ public class MACDescription {
 
     }
 
+    static {
+        XPathFactory xPathfactory = XPathFactory.newInstance();
+        xpath = xPathfactory.newXPath();
+        xpath.setNamespaceContext(new HardcodedNamespaceResolver());
+    }
+
+    private String getStringField(Document doc, String query) throws MACDescriptionParseException {
+        XPathExpression expr; NodeList nList;
+        try {
+            expr = xpath.compile(query);
+            nList = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
+        } catch (XPathExpressionException e) {
+            throw new MACDescriptionParseException("Unexpected error", e);
+        }
+        if (nList.getLength() != 0) {
+            return nList.item(0).getTextContent();
+        }
+
+        return null;
+    }
+
     private void parseOldXMLDescription(Document doc) throws MACDescriptionParseException {
+        vendor = getStringField(doc, "/oldwc:Template/oldwc:Catalog.ResourceDescription/oldwc:Vendor");
+        name = getStringField(doc, "/oldwc:Template/oldwc:Catalog.ResourceDescription/oldwc:Name");
+        version = getStringField(doc, "/oldwc:Template/oldwc:Catalog.ResourceDescription/oldwc:Version");
+        description = getStringField(doc, "/oldwc:Template/oldwc:Catalog.ResourceDescription/oldwc:Description");
+    }
+
+    private void parseXMLDescription(Document doc) throws MACDescriptionParseException {
         XPathFactory xPathfactory = XPathFactory.newInstance();
         XPath xpath = xPathfactory.newXPath();
         xpath.setNamespaceContext(new HardcodedNamespaceResolver());
-        XPathExpression expr; NodeList nList;
 
-        // Vendor
-        try {
-            expr = xpath.compile("/oldwc:Template/oldwc:Catalog.ResourceDescription/oldwc:Vendor");
-            nList = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
-        } catch (XPathExpressionException e) {
-            throw new MACDescriptionParseException("Unexpected error", e);
-        }
-        if (nList.getLength() != 0) {
-            vendor = nList.item(0).getTextContent();
-        }
-
-        // Name
-        try {
-            expr = xpath.compile("/oldwc:Template/oldwc:Catalog.ResourceDescription/oldwc:Name");
-            nList = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
-        } catch (XPathExpressionException e) {
-            throw new MACDescriptionParseException("Unexpected error", e);
-        }
-        if (nList.getLength() != 0) {
-            name = nList.item(0).getTextContent();
-        }
-
-        // Version
-        try {
-            expr = xpath.compile("/oldwc:Template/oldwc:Catalog.ResourceDescription/oldwc:Version");
-            nList = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
-        } catch (XPathExpressionException e) {
-            throw new MACDescriptionParseException("Unexpected error", e);
-        }
-        if (nList.getLength() != 0) {
-            version = nList.item(0).getTextContent();
-        }
-    }
-
-    private void parseXMLDescription(Document doc) {
         Element root = doc.getDocumentElement();
 
         if (root.hasAttribute("vendor")) {
@@ -168,5 +161,8 @@ public class MACDescription {
         if (root.hasAttribute("version")) {
             version = root.getAttribute("version");
         }
+
+        // Description
+        description = getStringField(doc, "/wc:*/wc:details/wc:description");
     }
 }
