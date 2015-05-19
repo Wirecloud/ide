@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014 CoNWeT Lab., Universidad Politécnica de Madrid
+ *  Copyright (c) 2013-2015 CoNWeT Lab., Universidad Politécnica de Madrid
  *  
  *  This file is part of Wirecloud IDE.
  *
@@ -27,6 +27,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -237,12 +238,16 @@ public class WirecloudAPI extends WizardFragment {
         String url = new URL(this.url, TOKEN_ENDPOINT).toString();
 
         try {
+            // Send client_id and client_secret using basic authentication (required for KeyRock 2.0)
+            String oauth2Credentials = clientId + ":" + clientSecret;
             OAuthClientRequest request = OAuthClientRequest
                     .tokenLocation(url.toString())
                     .setGrantType(GrantType.AUTHORIZATION_CODE)
                     .setClientId(clientId).setClientSecret(clientSecret)
                     .setRedirectURI(redirectURI.toString()).setCode(code)
                     .buildBodyMessage();
+
+            request.addHeader("Authorization", "Basic " + Base64.encodeBase64String(oauth2Credentials.getBytes()));
 
             OAuthClient oAuthClient = createoAuthClient(request);
             OAuthJSONAccessTokenResponse oAuthResponse = oAuthClient
